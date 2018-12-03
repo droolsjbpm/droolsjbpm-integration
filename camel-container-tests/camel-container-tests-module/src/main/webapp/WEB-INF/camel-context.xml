@@ -101,6 +101,9 @@
       <setHeader headerName="CamelKieOperation">
         <constant>createContainer</constant>
       </setHeader>
+      <setHeader headerName="BodyParam">
+        <constant>resource</constant>
+      </setHeader>
       <setHeader headerName="CamelKieId">
         <simple>${body.get(0)}</simple>
       </setHeader>

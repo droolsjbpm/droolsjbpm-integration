@@ -45,8 +45,6 @@ public class KieConfiguration implements Cloneable {
         setBodyParam( "dmn", "evaluateAll", "dmnContext" );
         setBodyParam( "dmn", "evaluateDecisionByName", "dmnContext" );
         setBodyParam( "dmn", "evaluateDecisionById", "dmnContext" );
-
-        setBodyParam("kieServices", "createContainer", "resource");
     }
 
     public void configure(String remaining) {
