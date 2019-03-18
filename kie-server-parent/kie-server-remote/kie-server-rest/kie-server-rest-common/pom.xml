@@ -40,6 +40,10 @@
     </dependency>
     <dependency>
       <groupId>org.kie.server</groupId>
+      <artifactId>kie-server-common</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kie.server</groupId>
       <artifactId>kie-server-services-common</artifactId>
     </dependency>
 
@@ -50,9 +54,39 @@
     </dependency>
     
     <!-- REST -->
+    <!-- RestEasy JAX-RS dependencies -->
     <dependency>
-      <groupId>org.kie.server</groupId>
-      <artifactId>kie-server-common</artifactId>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-jaxrs</artifactId>
+      <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>javassist</groupId>
+          <artifactId>javassist</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.annotation</groupId>
+          <artifactId>jsr250-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>net.jcip</groupId>
+          <artifactId>jcip-annotations</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.spec.javax.ws.rs</groupId>
+      <artifactId>jboss-jaxrs-api_2.0_spec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-jaxb-provider</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.resteasy</groupId>
+      <artifactId>resteasy-jackson-provider</artifactId>
+      <scope>runtime</scope>
     </dependency>
     <!--json -->
     <dependency>

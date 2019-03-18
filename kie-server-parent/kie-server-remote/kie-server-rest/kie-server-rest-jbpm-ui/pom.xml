@@ -46,10 +46,6 @@
           <groupId>javax.xml.stream</groupId>
           <artifactId>stax-api</artifactId>
         </exclusion>
-        <exclusion>
-          <groupId>javax.activation</groupId>
-          <artifactId>activation</artifactId>
-        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -59,6 +55,13 @@
     <dependency>
       <groupId>org.kie.server</groupId>
       <artifactId>kie-server-rest-common</artifactId>
+      <exclusions>
+        <!-- Collides with javax.activation:javax.activation-api from Hibernate -->
+        <exclusion>
+          <groupId>javax.activation</groupId>
+          <artifactId>activation</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
