@@ -24,6 +24,7 @@
     <kie.server.classifier>ee7</kie.server.classifier>
     <container.hostname>localhost</container.hostname>
     <container.port>8080</container.port>
+    <extra.container.port>18080</extra.container.port>
     <kie.server.base.http.url>http://${container.hostname}:${container.port}/${kie.server.context}/services/rest/server</kie.server.base.http.url>
     <kie.maven.settings.custom>${user.home}/.m2/settings.xml</kie.maven.settings.custom>
     <org.kie.server.mode.production>PRODUCTION</org.kie.server.mode.production>
@@ -146,6 +147,11 @@
                 <portName>cargo.jboss.https.port</portName>
                 <portName>cargo.jboss.management-http.port</portName>
                 <portName>cargo.jboss.management-https.port</portName>
+
+                <portName>extra.jboss.ajp.port</portName>
+                <portName>extra.jboss.https.port</portName>
+                <portName>extra.jboss.management-http.port</portName>
+                <portName>extra.jboss.management-https.port</portName>
               </portNames>
             </configuration>
           </execution>
@@ -282,21 +288,86 @@
             <artifactId>maven-antrun-plugin</artifactId>
             <executions>
               <execution>
+                <id>pre-integration-test</id>
                 <phase>pre-integration-test</phase>
                 <goals>
                   <goal>run</goal>
                 </goals>
                 <configuration>
                   <target>
+                    <get src="${eap.kie.server.url}" dest="${project.build.directory}/eap.kie.server.zip" />
+
+                    <unzip src="${project.build.directory}/eap.kie.server.zip" dest="${project.build.directory}/application-server-for-kie-server">
+                      <cutdirsmapper dirs="1" />
+                    </unzip>
+                    <get src="file://${kie.server.war}" dest="${project.build.directory}/application-server-for-kie-server/standalone/deployments/${kie.server.context}.war"/>
+
+                    <get src="file://${project.basedir}/src/test/resources/standalone-full.xml" dest="${project.build.directory}/application-server-for-kie-server/standalone/configuration/"/>
+
+                    <exec executable="chmod">
+                        <arg value="u+x" />
+                        <arg value="${project.build.directory}/application-server-for-kie-server/bin/standalone.sh" />
+                    </exec>
+                    <exec executable="chmod">
+                        <arg value="u+x" />
+                        <arg value="${project.build.directory}/application-server-for-kie-server/bin/jboss-cli.sh" />
+                    </exec>
+                    <exec executable="chmod">
+                        <arg value="u+x" />
+                        <arg value="${project.build.directory}/application-server-for-kie-server/bin/add-user.sh" />
+                    </exec>
+
+                    <exec executable="${project.build.directory}/application-server-for-kie-server/bin/add-user.sh">
+                        <arg value="-a" />
+                        <arg value="--user" />
+                        <arg value="yoda" />
+                        <arg value="--password" />
+                        <arg value="test" />
+                        <arg value="--role" />
+                        <arg value="kie-server,guest" />
+                    </exec>
+
+                    <exec executable="${project.build.directory}/application-server-for-kie-server/bin/standalone.sh" spawn="true">
+                        <arg value="-c" />
+                        <arg value="standalone-full.xml" />
+                        <arg value="-Djboss.ajp.port=${extra.jboss.ajp.port}" />
+                        <arg value="-Djboss.http.port=${extra.container.port}" />
+                        <arg value="-Djboss.https.port=${extra.jboss.https.port}" />
+                        <arg value="-Djboss.management.http.port=${extra.jboss.management-http.port}" />
+                        <arg value="-Djboss.management.https.port=${extra.jboss.management-https.port}" />
+                        <arg value="-Dkie.maven.settings.custom=${kie.maven.settings.custom}" />
+                        <arg value="-Dorg.kie.server.mode.production=${org.kie.server.mode.production}" />
+                        <arg value="-Dorg.kie.server.location=http://localhost:${extra.container.port}/kie-server/services/rest/server" />
+                    </exec>
+
                     <get src="${eap.url}" dest="${project.build.directory}/eap.zip" />
                     <unzip src="${project.build.directory}/eap.zip" dest="${project.build.directory}/application-server">
                       <cutdirsmapper dirs="1" />
                     </unzip>
                     <get src="${fuse.on.eap.url}" dest="${project.build.directory}/fuse-on-eap.jar"/>
                     <java jar="${project.build.directory}/fuse-on-eap.jar" fork="true" dir="${project.build.directory}/application-server" />
+
                   </target>
                 </configuration>
               </execution>
+
+              <execution>
+                <id>post-integration-test</id>
+                <phase>post-integration-test</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <target>
+                    <exec executable="${project.build.directory}/application-server-for-kie-server/bin/jboss-cli.sh">
+                        <arg value="--connect" />
+                        <arg value="controller=127.0.0.1:${extra.jboss.management-http.port}" />
+                        <arg value="command=:shutdown" />
+                    </exec>
+                  </target>
+                </configuration>
+              </execution>
+
             </executions>
           </plugin>
           <plugin>
@@ -310,6 +381,7 @@
                 <systemProperties>
                   <kie.maven.settings.custom>${kie.maven.settings.custom}</kie.maven.settings.custom>
                   <org.kie.server.mode>${org.kie.server.mode.production}</org.kie.server.mode>
+                  <kie.server.port>${extra.container.port}</kie.server.port>
                 </systemProperties>
               </container>
               <deployables>
@@ -317,15 +389,6 @@
                   <groupId>org.drools</groupId>
                   <artifactId>camel-container-tests-module</artifactId>
                   <type>war</type>
-                </deployable>
-                <deployable>
-                  <location>${kie.server.war}</location>
-                  <type>war</type>
-                  <properties>
-                    <context>${kie.server.context}</context>
-                  </properties>
-                  <pingURL>${kie.server.base.http.url}</pingURL>
-                  <pingTimeout>300000</pingTimeout>
                 </deployable>
               </deployables>
               <configuration>
@@ -349,6 +412,7 @@
                 </users>
               </configuration>
             </configuration>
+
             <executions>
               <execution>
                 <id>start-container</id>

@@ -97,7 +97,7 @@
       <convertBodyTo type="java.lang.String"/>
       <to uri="bean:executionServerMarshaller?method=unmarshall(String)"/>
       <to uri="bean:executionServerCommandProcessor"/>
-      <to uri="kie:http://yoda:test@localhost:8080/kie-server-services/services/rest/server"/>
+      <to uri="kie:http://yoda:test@localhost:{{kie.server.port:8080}}/kie-server-services/services/rest/server"/>
       <to uri="bean:executionServerMarshaller?method=marshall(Object)"/>
     </route>
   </camelContext>
