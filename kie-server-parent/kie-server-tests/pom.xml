@@ -1179,13 +1179,21 @@
                       cargo.resource.id=KIE.SERVER.EXECUTOR
                     </cargo.resource.resource.jms.executor.queue.request>
                     <!-- Datasource -->
+<!--                     <cargo.datasource.datasource.h2> -->
+<!--                       cargo.datasource.driver=org.h2.Driver| -->
+<!--                       cargo.datasource.url=jdbc:h2:mem:test-db| -->
+<!--                       cargo.datasource.jndi=jdbc/jbpm| -->
+<!--                       cargo.datasource.username=sa| -->
+<!--                       cargo.datasource.password=| -->
+<!--                       cargo.datasource.transactionsupport=XA_TRANSACTION -->
+<!--                     </cargo.datasource.datasource.h2> -->
                     <cargo.datasource.datasource.h2>
-                      cargo.datasource.driver=org.h2.Driver|
-                      cargo.datasource.url=jdbc:h2:mem:test-db|
-                      cargo.datasource.jndi=jdbc/jbpm|
-                      cargo.datasource.username=sa|
-                      cargo.datasource.password=|
-                      cargo.datasource.transactionsupport=XA_TRANSACTION
+                      cargo.datasource.driver=${org.kie.server.datasource.driver.class}|
+                      cargo.datasource.url=${org.kie.server.datasource.connection.url}|
+                      cargo.datasource.jndi=${org.kie.server.persistence.ds}|
+                      cargo.datasource.username=${org.kie.server.datasource.username}|
+                      cargo.datasource.password=${org.kie.server.datasource.password}|
+                      cargo.datasource.type=javax.sql.XADataSource
                     </cargo.datasource.datasource.h2>
                   </properties>
                 </configuration>

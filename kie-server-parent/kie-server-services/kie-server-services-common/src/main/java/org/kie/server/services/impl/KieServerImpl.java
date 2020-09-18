@@ -438,6 +438,7 @@ public class KieServerImpl implements KieServer {
                 return new ServiceResponse<KieContainerResource>(ServiceResponse.ResponseType.FAILURE, "Container " + containerId + " not found or not in deactivated status.");
             }
         } catch (Exception e) {
+            e.printStackTrace();
             messages.add(new Message(Severity.ERROR, "Error activating container '" + containerId + "' due to " + e.getMessage()));
             logger.error("Error activating Container '" + containerId + "'", e);
             return new ServiceResponse<KieContainerResource>(ServiceResponse.ResponseType.FAILURE, "Error activating container " + containerId + ": " +
