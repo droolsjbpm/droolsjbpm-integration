@@ -24,6 +24,7 @@ import org.kie.camel.container.api.model.Person;
 import org.kie.camel.container.api.model.cloudbalance.CloudBalance;
 import org.kie.camel.container.api.model.cloudbalance.CloudComputer;
 import org.kie.camel.container.api.model.cloudbalance.CloudProcess;
+import org.kie.server.api.marshalling.MarshallingFormat;
 import org.kie.server.client.KieServicesConfiguration;
 
 
@@ -42,6 +43,7 @@ public class CamelKieServiceConfigurationCustomizer implements KieServicesConfig
         final KieServicesConfiguration conf = configuration.clone();
         conf.addExtraClasses(additionalClasses);
         conf.setTimeout(KIE_SERVER_CLIENT_TIMEOUT);
+        conf.setMarshallingFormat(MarshallingFormat.JSON);
         return conf;
     }
 

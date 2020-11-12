@@ -60,6 +60,6 @@ public class RuleClientIntegrationTest extends AbstractRemoteIntegrationTest {
         Assertions.assertThat(response).isInstanceOf(String.class);
 
         final String responseString = (String) response;
-        Assertions.assertThat(responseString).contains("execution-results");
+        Assertions.assertThat(responseString).contains("results");
     }
 }
