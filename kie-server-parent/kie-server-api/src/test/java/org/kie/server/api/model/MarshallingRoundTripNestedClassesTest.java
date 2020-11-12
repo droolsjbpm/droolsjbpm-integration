@@ -74,4 +74,75 @@ public class MarshallingRoundTripNestedClassesTest {
         Object testObjectAfterMarshallingTurnAround = marshaller.unmarshall(rawContent, inputObject.getClass());
         Assertions.assertThat(testObjectAfterMarshallingTurnAround).isEqualTo(inputObject);
     }
+
+    @Test
+    public void testJSONRawPayload() {
+        // This payload is equivalent to testJSON()
+        Marshaller marshaller = MarshallerFactory.getMarshaller(getCustomClasses(), MarshallingFormat.JSON, getClass().getClassLoader());
+        String rawContent = "{\n" +
+                            "  \"org.kie.server.api.marshalling.objects.Pojo1\" : {\n" +
+                            "    \"desc\" : \"C\",\n" +
+                            "    \"pojo2\" : {\n" +
+                            "      \"org.kie.server.api.marshalling.objects.Pojo2\" : {\n" +
+                            "        \"desc2\" : \"B\",\n" +
+                            "        \"primitiveBoolean\" : true,\n" +
+                            "        \"pojo3\" : {\n" +
+                            "          \"org.kie.server.api.marshalling.objects.Pojo3\" : {\n" +
+                            "            \"desc3\" : \"A\"\n" +
+                            "          }\n" +
+                            "        }\n" +
+                            "      }\n" +
+                            "    }\n" +
+                            "  }\n" +
+                            "}";
+
+        Object unmarshalledObject = marshaller.unmarshall(rawContent, Pojo1.class);
+        Assertions.assertThat(unmarshalledObject).isEqualTo(createTestObject());
+    }
+
+    @Test
+    public void testJSONSimpleClassName() {
+        Marshaller marshaller = MarshallerFactory.getMarshaller(getCustomClasses(), MarshallingFormat.JSON, getClass().getClassLoader());
+        String rawContent = "{\n" +
+                            "  \"Pojo1\" : {\n" +
+                            "    \"desc\" : \"C\",\n" +
+                            "    \"pojo2\" : {\n" +
+                            "      \"Pojo2\" : {\n" +
+                            "        \"desc2\" : \"B\",\n" +
+                            "        \"primitiveBoolean\" : true,\n" +
+                            "        \"pojo3\" : {\n" +
+                            "          \"Pojo3\" : {\n" +
+                            "            \"desc3\" : \"A\"\n" +
+                            "          }\n" +
+                            "        }\n" +
+                            "      }\n" +
+                            "    }\n" +
+                            "  }\n" +
+                            "}";
+
+        Object unmarshalledObject = marshaller.unmarshall(rawContent, Pojo1.class);
+        Assertions.assertThat(unmarshalledObject).isEqualTo(createTestObject());
+    }
+
+    @Test
+    public void testJSONSimpleClassNameTopLevelOnly() {
+        Marshaller marshaller = MarshallerFactory.getMarshaller(getCustomClasses(), MarshallingFormat.JSON, getClass().getClassLoader());
+        String rawContent = "{\n" +
+                            "  \"Pojo1\" : {\n" +
+                            "    \"desc\" : \"C\",\n" +
+                            "    \"pojo2\" : {\n" +
+                            "        \"desc2\" : \"B\",\n" +
+                            "        \"primitiveBoolean\" : true,\n" +
+                            "        \"pojo3\" : {\n" +
+                            "            \"desc3\" : \"A\"\n" +
+                            "          }\n" +
+                            "        }\n" +
+                            "      }\n" +
+                            "    }\n" +
+                            "  }\n" +
+                            "}";
+
+        Object unmarshalledObject = marshaller.unmarshall(rawContent, Pojo1.class);
+        Assertions.assertThat(unmarshalledObject).isEqualTo(createTestObject());
+    }
 }
