@@ -41,7 +41,7 @@ public class RuleFlowDelegate implements ConwayRuleDelegate {
      * @see org.drools.examples.conway.ConwayRuleDelegate#init()
      */
     public void init() {
-        this.session.startProcess( "register neighbor" );
+        this.session.startProcess( "registerneighbor" );
         this.session.fireAllRules();
         session.getAgenda().getRuleFlowGroup( "calculate" ).clear();
     }
@@ -67,7 +67,7 @@ public class RuleFlowDelegate implements ConwayRuleDelegate {
      * @see org.drools.examples.conway.ConwayRuleDelegate#killAll()
      */
     public void killAll() {
-        this.session.startProcess( "kill all" );
+        this.session.startProcess( "killall" );
         this.session.fireAllRules();
     }
     
