@@ -16,6 +16,7 @@
 package org.kie.server.integrationtests.drools;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -25,13 +26,15 @@ import org.junit.Test;
 import org.kie.api.KieServices;
 import org.kie.api.command.BatchExecutionCommand;
 import org.kie.api.command.Command;
+import org.kie.api.runtime.ClassObjectFilter;
 import org.kie.api.runtime.ExecutionResults;
 import org.kie.server.api.model.ReleaseId;
 import org.kie.server.api.model.ServiceResponse;
-
-import static org.junit.Assert.*;
 import org.kie.server.integrationtests.shared.KieServerDeployer;
 import org.kie.server.integrationtests.shared.KieServerReflections;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class ClassesInludedInKJarIntegrationTest extends DroolsKieServerBaseIntegrationTest {
 
@@ -113,4 +116,20 @@ public class ClassesInludedInKJarIntegrationTest extends DroolsKieServerBaseInte
 
     }
 
+    @Test
+    public void testClassObjectFilter() {
+        List<Command<?>> commands = new ArrayList<Command<?>>();
+        BatchExecutionCommand executionCommand = commandsFactory.newBatchExecution(commands, KIE_SESSION);
+
+        Object person = createInstance(PERSON_CLASS_NAME, PERSON_NAME, "");
+        commands.add(commandsFactory.newInsert(person, PERSON_1_OUT_IDENTIFIER));
+        commands.add(commandsFactory.newGetObjects(new ClassObjectFilter(person.getClass()), "objectsInSession"));
+
+        ServiceResponse<ExecutionResults> reply = ruleClient.executeCommandsWithResults(CONTAINER_ID, executionCommand);
+        assertEquals(ServiceResponse.ResponseType.SUCCESS, reply.getType());
+
+        final Object objectsInSession = reply.getResult().getValue("objectsInSession");
+        assertTrue(objectsInSession instanceof Collection);
+        assertEquals(1, ((Collection) objectsInSession).size());
+    }
 }
