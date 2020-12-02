@@ -6,14 +6,13 @@ jobs:
   build-chain:
     strategy:
       matrix:
-        java-version: [8, 11]
+        java-version: [8]
       fail-fast: false
     runs-on: ubuntu-latest
     name: Maven Build
     steps:
       - name: Free disk space
         run: |
-          df -h
           sudo apt-get remove aria2 ansible azure-cli shellcheck rpm xorriso zsync \
             clang-6.0 lldb-6.0 lld-6.0 clang-format-6.0 clang-8 lldb-8 lld-8 clang-format-8 \
             clang-9 lldb-9 lld-9 clangd-9 clang-format-9 dotnet-sdk-3.0 dotnet-sdk-3.1=3.1.101-1 \
@@ -49,33 +48,5 @@ jobs:
             php7.4-tidy php7.4-xml php7.4-xmlrpc php7.4-xsl php7.4-zip php-amqp php-apcu \
             php-igbinary php-memcache php-memcached php-mongodb php-redis php-xdebug \
             php-zmq snmp pollinate libpq-dev postgresql-client powershell ruby-full \
-            sphinxsearch subversion mongodb-org -yq >/dev/null 2>&1
-          sudo apt-get autoremove -y >/dev/null 2>&1
-          sudo apt-get autoclean -y >/dev/null 2>&1
-          sudo rm -rf /usr/local/lib/android >/dev/null 2>&1
-          docker rmi $(docker image ls -aq) >/dev/null 2>&1
-          df -h      
-      - name: Set up JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: ${{ matrix.java-version }}
-      - name: Install takari
-        run: |
-          wget -P $M2_HOME/lib/ext https://repo1.maven.org/maven2/io/takari/aether/takari-local-repository/0.11.3/takari-local-repository-0.11.3.jar
-          wget -P $M2_HOME/lib/ext https://repo1.maven.org/maven2/io/takari/takari-filemanager/0.8.3/takari-filemanager-0.8.3.jar
-          wget -P $M2_HOME/lib/ext https://repo1.maven.org/maven2/io/takari/maven/takari-smart-builder/0.6.1/takari-smart-builder-0.6.1.jar
-      # See https://docs.github.com/en/actions/guides/building-and-testing-java-with-maven#caching-dependencies
-      - name: Cache Maven packages
-        uses: actions/cache@v2
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-      - name: Build Chain ${{ matrix.java-version }}
-        id: build-chain
-        uses: kiegroup/github-action-build-chain@v2.2
-        with:
-          definition-file: https://raw.githubusercontent.com/${GROUP}/droolsjbpm-build-bootstrap/${BRANCH}/.ci/pull-request-config.yaml
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+            sphinxsearch subversion mongodb-org -yq
                             
