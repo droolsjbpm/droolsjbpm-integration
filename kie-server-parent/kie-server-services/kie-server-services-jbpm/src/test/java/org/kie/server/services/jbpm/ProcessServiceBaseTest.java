@@ -24,7 +24,6 @@ import org.jbpm.kie.services.impl.model.UserTaskInstanceDesc;
 import org.jbpm.services.api.DefinitionService;
 import org.jbpm.services.api.ProcessService;
 import org.jbpm.services.api.RuntimeDataService;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,7 +37,10 @@ import org.mockito.runners.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ProcessServiceBaseTest {
@@ -105,6 +107,7 @@ public class ProcessServiceBaseTest {
                                                                 new Date(),
                                                                 new Date());
         processInstanceDesc.setActiveTasks(Arrays.asList(task1,task2));
+        processInstanceDesc.setDeploymentId(containerId);
 
 
         when(runtimeDataServiceMock.getProcessInstanceById(processInstanceId)).thenReturn(processInstanceDesc);

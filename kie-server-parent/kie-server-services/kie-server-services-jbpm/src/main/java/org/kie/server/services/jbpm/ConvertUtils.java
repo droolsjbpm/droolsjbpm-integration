@@ -17,10 +17,13 @@ package org.kie.server.services.jbpm;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
+import org.jbpm.services.api.ProcessInstanceNotFoundException;
 import org.jbpm.services.api.model.NodeInstanceDesc;
 import org.jbpm.services.api.model.ProcessDefinition;
 import org.jbpm.services.api.model.ProcessInstanceCustomDesc;
@@ -56,19 +59,32 @@ import org.kie.server.api.model.instance.TaskWithProcessDescription;
 import org.kie.server.api.model.instance.TaskWithProcessDescriptionList;
 import org.kie.server.api.model.instance.VariableInstance;
 import org.kie.server.api.model.instance.VariableInstanceList;
+import org.kie.server.services.api.ContainerLocator;
+import org.kie.server.services.api.KieServerRegistry;
+import org.kie.server.services.jbpm.locator.ByProcessInstanceIdContainerLocator;
 
 import static java.util.stream.Collectors.toList;
+import static org.kie.api.runtime.process.ProcessInstance.STATE_ACTIVE;
 
 public class ConvertUtils {
 
+    private ConvertUtils() {}
+
+    private static Map<Long, ContainerLocator> containerCache = Collections.synchronizedMap(new WeakHashMap<>());
+
     public static ProcessInstanceList convertToProcessInstanceList(Collection<ProcessInstanceDesc> instances) {
+        return convertToProcessInstanceList(instances, null);
+    }
+
+    public static ProcessInstanceList convertToProcessInstanceList(Collection<ProcessInstanceDesc> instances,
+                                                                   String containerId) {
         if (instances == null) {
-            return new ProcessInstanceList(new org.kie.server.api.model.instance.ProcessInstance[0]);
+            return new ProcessInstanceList(new ProcessInstance[0]);
         }
 
-        List<ProcessInstance> processInstances = new ArrayList<ProcessInstance>(instances.size());
+        List<ProcessInstance> processInstances = new ArrayList<>(instances.size());
         for (ProcessInstanceDesc pi : instances) {
-            org.kie.server.api.model.instance.ProcessInstance instance = convertToProcessInstance(pi);
+            org.kie.server.api.model.instance.ProcessInstance instance = convertToProcessInstance(pi, containerId);
 
             processInstances.add(instance);
         }
@@ -81,24 +97,45 @@ public class ConvertUtils {
             return new ProcessInstanceList(new org.kie.server.api.model.instance.ProcessInstance[0]);
         }
 
-        List<ProcessInstance> processInstances = new ArrayList<ProcessInstance>(instances.size());
+        List<ProcessInstance> processInstances = new ArrayList<>(instances.size());
         for (ProcessInstanceWithVarsDesc pi : instances) {
             org.kie.server.api.model.instance.ProcessInstance instance = convertToProcessInstance(pi);
-
-            instance.setVariables(pi.getVariables());
-
+            if (instance != null) {
+                instance.setVariables(pi.getVariables());
+            }
             processInstances.add(instance);
         }
-
         return new ProcessInstanceList(processInstances);
     }
 
     public static org.kie.server.api.model.instance.ProcessInstance convertToProcessInstance(ProcessInstanceDesc pi) {
+        return convertToProcessInstance(pi, null);
+    }
+
+    private static void checkContainerId(long processInstanceId, String containerId) {
+        // check process instance belong to container id
+        if (containerId != null) {
+            try {
+                if (!containerCache.computeIfAbsent(processInstanceId, ByProcessInstanceIdContainerLocator::new)
+                        .locateContainer(containerId, Collections.emptyList()).equals(containerId)) {
+                    throwException(processInstanceId, containerId);
+                }
+            } catch (IllegalArgumentException ex) {
+                throwException(processInstanceId, containerId, ex);
+            }
+        }
+
+    }
+
+    public static org.kie.server.api.model.instance.ProcessInstance convertToProcessInstance(ProcessInstanceDesc pi,
+                                                                                             String containerId) {
         if (pi == null) {
             return null;
         }
 
-        org.kie.server.api.model.instance.ProcessInstance instance = org.kie.server.api.model.instance.ProcessInstance.builder()
+        checkContainerId(pi.getId(), containerId);
+        org.kie.server.api.model.instance.ProcessInstance instance = org.kie.server.api.model.instance.ProcessInstance
+                .builder()
                 .id(pi.getId())
                 .processId(pi.getProcessId())
                 .processName(pi.getProcessName())
@@ -144,25 +181,19 @@ public class ConvertUtils {
     
     public static ProcessInstanceCustomVarsList convertToProcessInstanceCustomVarsList(Collection<ProcessInstanceCustomDesc> instances) {
         if (instances == null) {
-            return new ProcessInstanceCustomVarsList(new org.kie.server.api.model.instance.ProcessInstanceCustomVars[0]);
+            return new ProcessInstanceCustomVarsList(new ProcessInstanceCustomVars[0]);
         }
 
-        List<ProcessInstanceCustomVars> processInstances = new ArrayList<ProcessInstanceCustomVars>(instances.size());
+        List<ProcessInstanceCustomVars> processInstances = new ArrayList<>(instances.size());
         for (ProcessInstanceCustomDesc pi : instances) {
-            org.kie.server.api.model.instance.ProcessInstanceCustomVars instance = convertToProcessInstanceCustomVars(pi);
-
+            ProcessInstanceCustomVars instance = convertToProcessInstanceCustomVars(pi);
             processInstances.add(instance);
         }
-
         return new ProcessInstanceCustomVarsList(processInstances);
     }
     
-    public static org.kie.server.api.model.instance.ProcessInstanceCustomVars convertToProcessInstanceCustomVars(ProcessInstanceCustomDesc pi) {
-        if (pi == null) {
-            return null;
-        }
-
-        org.kie.server.api.model.instance.ProcessInstanceCustomVars instance = org.kie.server.api.model.instance.ProcessInstanceCustomVars.builder()
+    public static ProcessInstanceCustomVars convertToProcessInstanceCustomVars(ProcessInstanceCustomDesc pi) {
+        return pi == null ? null : ProcessInstanceCustomVars.builder()
                 .id(pi.getId())
                 .processId(pi.getProcessId())
                 .processName(pi.getProcessName())
@@ -177,31 +208,22 @@ public class ConvertUtils {
                 .lastModificationDate(pi.getLastModificationDate())
                 .variables(pi.getVariables())
                 .build();
-        
-        return instance;
     }
 
     public static ProcessDefinitionList convertToProcessList(Collection<ProcessDefinition> definitions) {
         if (definitions == null) {
             return new ProcessDefinitionList(new org.kie.server.api.model.definition.ProcessDefinition[0]);
         }
-
-        List<org.kie.server.api.model.definition.ProcessDefinition> processes = new ArrayList<org.kie.server.api.model.definition.ProcessDefinition>(definitions.size());
+        List<org.kie.server.api.model.definition.ProcessDefinition> processes = new ArrayList<>(definitions.size());
         for (ProcessDefinition pd : definitions) {
             org.kie.server.api.model.definition.ProcessDefinition definition = convertToProcess(pd);
-
             processes.add(definition);
         }
-
         return new ProcessDefinitionList(processes);
     }
 
     public static org.kie.server.api.model.definition.ProcessDefinition convertToProcess(ProcessDefinition processDesc) {
-        if (processDesc == null) {
-            return null;
-        }
-
-        org.kie.server.api.model.definition.ProcessDefinition processDefinition = org.kie.server.api.model.definition.ProcessDefinition.builder()
+        return processDesc == null ? null : org.kie.server.api.model.definition.ProcessDefinition.builder()
                 .id(processDesc.getId())
                 .name(processDesc.getName())
                 .packageName(processDesc.getPackageName())
@@ -209,8 +231,6 @@ public class ConvertUtils {
                 .containerId(processDesc.getDeploymentId())
                 .dynamic(processDesc.isDynamic())
                 .build();
-
-        return processDefinition;
     }
 
     public static ExecutionErrorInstanceList convertToErrorInstanceList(List<ExecutionError> executionErrors) {
@@ -218,22 +238,16 @@ public class ConvertUtils {
             return new ExecutionErrorInstanceList(new ExecutionErrorInstance[0]);
         }
 
-        List<ExecutionErrorInstance> executionErrorInstances = new ArrayList<ExecutionErrorInstance>(executionErrors.size());
+        List<ExecutionErrorInstance> executionErrorInstances = new ArrayList<>(executionErrors.size());
         for (ExecutionError error : executionErrors) {
-            ExecutionErrorInstance errorInstance = convertToErrorInstance(error);
-
-            executionErrorInstances.add(errorInstance);
+            executionErrorInstances.add(convertToErrorInstance(error));
         }
 
         return new ExecutionErrorInstanceList(executionErrorInstances);
     }
 
     public static ExecutionErrorInstance convertToErrorInstance(ExecutionError executionError) {
-        if (executionError == null) {
-            return null;
-        }
-
-        ExecutionErrorInstance errorInstance = ExecutionErrorInstance.builder()
+        return executionError == null ? null : ExecutionErrorInstance.builder()
                 .error(executionError.getError())
                 .errorId(executionError.getErrorId())
                 .errorDate(executionError.getErrorDate())
@@ -249,8 +263,6 @@ public class ConvertUtils {
                 .processId(executionError.getProcessId())
                 .type(executionError.getType())
                 .build();
-
-        return errorInstance;
     }
 
     public static QueryContext buildQueryContext(Integer page, Integer pageSize) {
@@ -289,9 +301,8 @@ public class ConvertUtils {
         }
 
         if (filter != null && !filter.isEmpty()) {
-            Map<String, Object> params = new HashMap<String, Object>();
+            Map<String, Object> params = new HashMap<>();
             params.put("taskName", filter);
-
             queryFilter.setFilterParams("t.name like :taskName");
             queryFilter.setParams(params);
         }
@@ -301,22 +312,23 @@ public class ConvertUtils {
 
     public static List<Status> buildTaskStatuses(List<String> status) {
         if (status == null || status.isEmpty()) {
-            return null;
+            return Collections.emptyList();
         }
-
-        List<Status> taskStatuses = new ArrayList<Status>();
-
+        List<Status> taskStatuses = new ArrayList<>();
         for (String s : status) {
             taskStatuses.add(Status.valueOf(s));
         }
-
         return taskStatuses;
     }
 
-
     public static NodeInstance convertToNodeInstance(NodeInstanceDesc nodeInstanceDesc) {
+        return convertToNodeInstance(nodeInstanceDesc, null);
+    }
 
-        NodeInstance nodeInstance = NodeInstance.builder()
+    public static NodeInstance convertToNodeInstance(NodeInstanceDesc nodeInstanceDesc,
+                                                     String containerId) {
+        checkContainerId(nodeInstanceDesc.getProcessInstanceId(), containerId);
+        return NodeInstance.builder()
                 .id(nodeInstanceDesc.getId())
                 .name(nodeInstanceDesc.getName())
                 .nodeId(nodeInstanceDesc.getNodeId())
@@ -331,50 +343,48 @@ public class ConvertUtils {
                 .slaCompliance(nodeInstanceDesc.getSlaCompliance())
                 .slaDueDate(nodeInstanceDesc.getSlaDueDate())
                 .build();
-
-        return nodeInstance;
-
     }
 
-    public static NodeInstanceList convertToNodeInstanceList(Collection<NodeInstanceDesc> definitions) {
+    public static NodeInstanceList convertToNodeInstanceList(Collection<NodeInstanceDesc> definitions,
+                                                             String containerId) {
         if (definitions == null) {
             return new NodeInstanceList(new NodeInstance[0]);
         }
 
-        List<NodeInstance> processes = new ArrayList<NodeInstance>(definitions.size());
+        List<NodeInstance> processes = new ArrayList<>(definitions.size());
         for (NodeInstanceDesc ni : definitions) {
-            NodeInstance nodeInstance = convertToNodeInstance(ni);
-
-            processes.add(nodeInstance);
+            processes.add(convertToNodeInstance(ni, containerId));
         }
-
         return new NodeInstanceList(processes);
     }
 
     public static VariableInstance convertToVariable(VariableDesc variableDesc) {
-        VariableInstance instance = VariableInstance.builder()
+        return convertToVariable(variableDesc, null);
+    }
+
+
+    public static VariableInstance convertToVariable(VariableDesc variableDesc,
+                                                     String containerId) {
+        checkContainerId(variableDesc.getProcessInstanceId(), containerId);
+        return VariableInstance.builder()
                 .name(variableDesc.getVariableId())
                 .processInstanceId(variableDesc.getProcessInstanceId())
                 .value(variableDesc.getNewValue())
                 .oldValue(variableDesc.getOldValue())
                 .date(variableDesc.getDataTimeStamp())
                 .build();
-
-        return instance;
     }
 
-    public static VariableInstanceList convertToVariablesList(Collection<VariableDesc> variables) {
+    public static VariableInstanceList convertToVariablesList(Collection<VariableDesc> variables,
+                                                              String containerId,
+                                                              KieServerRegistry registry) {
         if (variables == null) {
             return new VariableInstanceList(new VariableInstance[0]);
         }
-
-        List<VariableInstance> processes = new ArrayList<VariableInstance>(variables.size());
+        List<VariableInstance> processes = new ArrayList<>(variables.size());
         for (VariableDesc vi : variables) {
-            VariableInstance nodeInstance = convertToVariable(vi);
-
-            processes.add(nodeInstance);
+            processes.add(convertToVariable(vi, containerId));
         }
-
         return new VariableInstanceList(processes);
     }
 
@@ -383,7 +393,7 @@ public class ConvertUtils {
             return new TaskInstanceList(new org.kie.server.api.model.instance.TaskInstance[0]);
         }
 
-        List<TaskInstance> taskInstances = new ArrayList<TaskInstance>(instances.size());
+        List<TaskInstance> taskInstances = new ArrayList<>(instances.size());
         for (UserTaskInstanceWithVarsDesc task : instances) {
             org.kie.server.api.model.instance.TaskInstance instance = convertToTask(task);
 
@@ -400,7 +410,7 @@ public class ConvertUtils {
             return new TaskInstanceList(new org.kie.server.api.model.instance.TaskInstance[0]);
         }
 
-        List<TaskInstance> taskInstances = new ArrayList<TaskInstance>(instances.size());
+        List<TaskInstance> taskInstances = new ArrayList<>(instances.size());
         for (UserTaskInstanceDesc task : instances) {
             org.kie.server.api.model.instance.TaskInstance instance = convertToTask(task);
             taskInstances.add(instance);
@@ -410,8 +420,7 @@ public class ConvertUtils {
     }
 
     public static TaskInstance convertToTask(UserTaskInstanceDesc userTask) {
-
-        TaskInstance instance = TaskInstance.builder()
+        return TaskInstance.builder()
                 .id(userTask.getTaskId())
                 .name(userTask.getName())
                 .processInstanceId(userTask.getProcessInstanceId())
@@ -433,8 +442,6 @@ public class ConvertUtils {
                 .processType(userTask.getProcessType())
                 .correlationKey(userTask.getCorrelationKey())
                 .build();
-
-        return instance;
     }
     
     public static TaskWithProcessDescriptionList convertToTaskInstanceListPO(Collection<UserTaskInstanceWithPotOwnerDesc> instances) {
@@ -442,7 +449,7 @@ public class ConvertUtils {
             return new TaskWithProcessDescriptionList(new org.kie.server.api.model.instance.TaskWithProcessDescription[0]);
         }
 
-        List<TaskWithProcessDescription> taskInstances = new ArrayList<TaskWithProcessDescription>(instances.size());
+        List<TaskWithProcessDescription> taskInstances = new ArrayList<>(instances.size());
         for (UserTaskInstanceWithPotOwnerDesc task : instances) {
             org.kie.server.api.model.instance.TaskWithProcessDescription instance = convertToTaskPO(task);
             taskInstances.add(instance);
@@ -452,8 +459,7 @@ public class ConvertUtils {
     }
     
     public static TaskWithProcessDescription convertToTaskPO(UserTaskInstanceWithPotOwnerDesc userTask) {
-
-        TaskWithProcessDescription instance = TaskWithProcessDescription.builder()
+        return TaskWithProcessDescription.builder()
                 .id(userTask.getTaskId())
                 .name(userTask.getName())
                 .processInstanceId(userTask.getProcessInstanceId())
@@ -478,8 +484,6 @@ public class ConvertUtils {
                 .processInstanceDescription(userTask.getProcessInstanceDescription())
                 .subject(userTask.getSubject())
                 .build();
-
-        return instance;
     }
 
     public static TaskSummaryList convertToTaskSummaryList(Collection<TaskSummary> tasks) {
@@ -521,18 +525,13 @@ public class ConvertUtils {
     }
 
     public static QueryDefinition convertQueryDefinition(org.jbpm.services.api.query.model.QueryDefinition queryDefinition) {
-        if (queryDefinition == null) {
-            return null;
-        }
-
-        QueryDefinition query = QueryDefinition.builder()
-                                .name(queryDefinition.getName())
-                                .expression(queryDefinition.getExpression())
-                                .source(queryDefinition.getSource())
-                                .target(queryDefinition.getTarget().toString())
-                                .columns(queryDefinition.getColumns())
-                                .build();
-        return query;
+        return queryDefinition == null ? null : QueryDefinition.builder()
+                                                               .name(queryDefinition.getName())
+                                                               .expression(queryDefinition.getExpression())
+                                                               .source(queryDefinition.getSource())
+                                                               .target(queryDefinition.getTarget().toString())
+                                                               .columns(queryDefinition.getColumns())
+                                                               .build();
     }
 
     public static QueryDefinitionList convertToQueryDefinitionList(Collection<org.jbpm.services.api.query.model.QueryDefinition> definitions) {
@@ -602,5 +601,25 @@ public class ConvertUtils {
         }
 
         return value;
+    }
+    
+    public static String checkSort(String sort) {
+        return sort == null || sort.isEmpty() ? "ProcessInstanceId" : sort;
+    }
+
+    public static List<Integer> checkStatus(List<Integer> status) {
+        return status == null || status.isEmpty() ? Collections.singletonList(STATE_ACTIVE) : status;
+    }
+
+    public static void throwException(long processInstanceId, String containerId) {
+        throw new ProcessInstanceNotFoundException(errorMessage(processInstanceId, containerId));
+    }
+
+    public static void throwException(long processInstanceId, String containerId, Throwable ex) {
+        throw new ProcessInstanceNotFoundException(errorMessage(processInstanceId, containerId), ex);
+    }
+
+    private static String errorMessage(long processInstanceId, String containerId) {
+        return "process instance " + processInstanceId + " does not belong to container " + containerId;
     }
 }

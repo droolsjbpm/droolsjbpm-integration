@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 
 import org.jbpm.services.api.DefinitionService;
 import org.jbpm.services.api.DeploymentNotFoundException;
+import org.jbpm.services.api.ProcessInstanceNotFoundException;
 import org.jbpm.services.api.ProcessService;
 import org.jbpm.services.api.RuntimeDataService;
 import org.jbpm.services.api.model.ProcessInstanceDesc;
@@ -45,6 +46,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.kie.server.services.jbpm.ConvertUtils.buildQueryContext;
+import static org.kie.server.services.jbpm.ConvertUtils.checkSort;
+import static org.kie.server.services.jbpm.ConvertUtils.checkStatus;
 import static org.kie.server.services.jbpm.ConvertUtils.convertToProcessInstance;
 import static org.kie.server.services.jbpm.ConvertUtils.convertToProcessInstanceList;
 
@@ -276,13 +279,13 @@ public class ProcessServiceBase {
     }
 
     public String getProcessInstance(String containerId,  Number processInstanceId, boolean withVars, String marshallingType) {
-
-        ProcessInstanceDesc instanceDesc = runtimeDataService.getProcessInstanceById(processInstanceId.longValue());
+        ProcessInstanceDesc instanceDesc =  runtimeDataService.getProcessInstanceById(processInstanceId.longValue());
         if (instanceDesc == null) {
-            throw new IllegalStateException("Unable to find process instance with id " + processInstanceId);
+            throw new ProcessInstanceNotFoundException("Unable to find process instance with id " + processInstanceId);
         }
-        containerId = context.getContainerId(containerId, new ByProcessInstanceIdContainerLocator(processInstanceId.longValue()));
-        org.kie.server.api.model.instance.ProcessInstance processInstance = convertToProcessInstance(instanceDesc);
+        
+        org.kie.server.api.model.instance.ProcessInstance processInstance = convertToProcessInstance(instanceDesc,
+                containerId);
 
         if (Boolean.TRUE.equals(withVars) && processInstance.getState().equals(ProcessInstance.STATE_ACTIVE)) {
             Map<String, Object> variables = processService.getProcessInstanceVariables(containerId, processInstanceId.longValue());
@@ -290,10 +293,7 @@ public class ProcessServiceBase {
         }
 
         logger.debug("About to marshal process instance with id '{}' {}", processInstanceId, processInstance);
-        String response = marshallerHelper.marshal(containerId, marshallingType, processInstance, new ByProcessInstanceIdContainerLocator(processInstanceId.longValue()));
-
-        return response;
-
+        return marshallerHelper.marshal(containerId, marshallingType, processInstance, new ByProcessInstanceIdContainerLocator(processInstanceId.longValue()));
     }
 
     public void setProcessVariable(String containerId, Number processInstanceId, String varName, String variablePayload, String marshallingType) {
@@ -425,27 +425,22 @@ public class ProcessServiceBase {
 
         return response;
     }
-
+    
     public ProcessInstanceList getProcessInstancesByParent(long parentProcessInstanceId, List<Integer> status, Integer page, Integer pageSize, String sort, boolean sortOrder) {
-        if (sort == null || sort.isEmpty()) {
-            sort = "ProcessInstanceId";
-        }
-        if (status == null || status.isEmpty()) {
-            status = new ArrayList<Integer>();
-            status.add(ProcessInstance.STATE_ACTIVE);
-        }
+        return getProcessInstancesByParent(null, parentProcessInstanceId, status, page, pageSize, sort, sortOrder);
+    }
+
+    public ProcessInstanceList getProcessInstancesByParent(String containerId, long parentProcessInstanceId, List<Integer> status, Integer page, Integer pageSize, String sort, boolean sortOrder) {
+        sort = checkSort(sort);
+        status = checkStatus(status);
         Collection<ProcessInstanceDesc> instances = runtimeDataService.getProcessInstancesByParent(parentProcessInstanceId, status, buildQueryContext(page, pageSize, sort, sortOrder));
+
 
         logger.debug("Found {} process instances , statuses '{}'", instances.size(), status);
 
-        ProcessInstanceList processInstanceList = convertToProcessInstanceList(instances);
+        ProcessInstanceList processInstanceList = convertToProcessInstanceList(instances, containerId);
         logger.debug("Returning result of process instance search: {}", processInstanceList);
 
         return processInstanceList;
     }
-
-
-
-
-
 }

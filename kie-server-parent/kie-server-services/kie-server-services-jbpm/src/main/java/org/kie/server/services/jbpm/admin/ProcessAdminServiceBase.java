@@ -38,13 +38,13 @@ import org.kie.server.api.model.admin.TimerInstanceList;
 import org.kie.server.api.model.instance.NodeInstanceList;
 import org.kie.server.services.api.KieServerRegistry;
 import org.kie.server.services.impl.marshal.MarshallerHelper;
-import org.kie.server.services.jbpm.ConvertUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.kie.server.services.jbpm.ConvertUtils.buildQueryContext;
 import static org.kie.server.services.jbpm.ConvertUtils.convertToErrorInstance;
 import static org.kie.server.services.jbpm.ConvertUtils.convertToErrorInstanceList;
+import static org.kie.server.services.jbpm.ConvertUtils.convertToNodeInstanceList;
 
 public class ProcessAdminServiceBase {
 
@@ -122,7 +122,7 @@ public class ProcessAdminServiceBase {
         Collection<NodeInstanceDesc> activeNodeInstances = processInstanceAdminService.getActiveNodeInstances(processInstanceId.longValue());
         logger.debug("Found active node instance {} in process instance {}", activeNodeInstances, processInstanceId);
 
-        return ConvertUtils.convertToNodeInstanceList(activeNodeInstances);
+        return convertToNodeInstanceList(activeNodeInstances, containerId);
     }
 
     public void triggerNode(String containerId, Number processInstanceId, Number nodeId) {

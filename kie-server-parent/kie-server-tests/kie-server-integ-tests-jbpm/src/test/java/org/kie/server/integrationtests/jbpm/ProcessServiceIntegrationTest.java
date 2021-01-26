@@ -58,14 +58,17 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.kie.api.runtime.process.ProcessInstance.STATE_ABORTED;
+import static org.kie.api.runtime.process.ProcessInstance.STATE_ACTIVE;
 import static org.kie.api.runtime.process.ProcessInstance.STATE_COMPLETED;
 
 public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationTest {
 
     private static final KieServerConfigItem PPI_RUNTIME_STRATEGY = new KieServerConfigItem(KieServerConstants.PCFG_RUNTIME_STRATEGY, RuntimeStrategy.PER_PROCESS_INSTANCE.name(), String.class.getName());
-
+    
     private static ReleaseId releaseId = new ReleaseId("org.kie.server.testing", "definition-project",
             "1.0.0.Final");
 
@@ -73,15 +76,20 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
 
     private static final String CONTAINER_ID_ALIAS = "Javierito";
 
+
     @BeforeClass
     public static void buildAndDeployArtifacts() {
 
         KieServerDeployer.buildAndDeployCommonMavenParent();
         KieServerDeployer.buildAndDeployMavenProjectFromResource("/kjars-sources/definition-project");
+        KieServerDeployer.buildAndDeployMavenProjectFromResource("/kjars-sources/exception-handling");
 
         kieContainer = KieServices.Factory.get().newKieContainer(releaseId);
 
         createContainer(CONTAINER_ID, releaseId, CONTAINER_ID_ALIAS, PPI_RUNTIME_STRATEGY);
+
+        createContainer(CONTAINER_ID_RESTART, new ReleaseId("org.kie.server.testing", "exception-handling",
+                                                       "1.0.0.Final"), PPI_RUNTIME_STRATEGY);
     }
 
     @Override
@@ -142,8 +150,8 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
 
             assertEquals(USER_MARY, variables.get("test"));
             assertEquals(12345, variables.get("number"));
-            assertEquals(1, ((List) variables.get("list")).size());
-            assertEquals("item", ((List) variables.get("list")).get(0));
+            assertEquals(1, ((List<?>) variables.get("list")).size());
+            assertEquals("item", ((List<?>) variables.get("list")).get(0));
             assertEquals(USER_JOHN, KieServerReflections.valueOf(variables.get("person"), "name"));
             assertEquals(TestConfig.getUsername(), variables.get("initiator"));
         } finally {
@@ -158,7 +166,7 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
 
     @Test(expected = KieServicesException.class)
     public void testStartNotExistingProcess() {
-        processClient.startProcess(CONTAINER_ID, "not-existing", (Map)null);
+        processClient.startProcess(CONTAINER_ID, "not-existing", (Map<String, Object>) null);
     }
 
     @Test()
@@ -185,6 +193,28 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
             processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
             fail(e.getMessage());
         }
+    }
+    
+    @Test
+    public void testAbortExistingProcessWrongContainer() {
+        Map<String, Object> parameters = new HashMap<>();
+
+        Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_EVALUATION, parameters);
+        try {
+            assertNotNull(processInstanceId);
+            assertTrue(processInstanceId > 0);
+
+            // Process instance is running and is active.
+            ProcessInstance processInstance = processClient.getProcessInstance(CONTAINER_ID, processInstanceId);
+            assertNotNull(processInstance);
+            assertEquals(STATE_ACTIVE, processInstance.getState().intValue());
+            assertThrows(KieServicesException.class,
+                    () -> processClient.abortProcessInstance(CONTAINER_ID_RESTART, processInstanceId));
+        }
+        finally {
+            processClient.abortProcessInstance(CONTAINER_ID , processInstanceId);
+        }
+
     }
 
     @Test(expected = KieServicesException.class)
@@ -315,6 +345,24 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
     }
 
     @Test
+    public void testSignalProcessInstanceWrongContainer() {
+        Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_SIGNAL_PROCESS);
+
+        assertNotNull(processInstanceId);
+        assertTrue(processInstanceId > 0);
+
+        try {
+            checkAvailableSignals(CONTAINER_ID, processInstanceId);
+
+            Object person = createPersonInstance(USER_JOHN);
+            assertThrows(KieServicesException.class, () -> processClient.signalProcessInstance(CONTAINER_ID_RESTART,
+                    processInstanceId, "Signal1", person));
+        } finally {
+            processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
+        }
+    }
+
+    @Test
     public void testSignalProcessInstanceNullEvent() throws Exception {
         Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_SIGNAL_PROCESS);
         assertNotNull(processInstanceId);
@@ -428,6 +476,25 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
         }
 
     }
+    
+    @Test
+    public void testManipulateProcessVariableWrongContainer() {
+        Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_SIGNAL_PROCESS);
+
+        assertNotNull(processInstanceId);
+        assertTrue(processInstanceId > 0);
+
+        try {
+            Object personVar = createPersonInstance(USER_JOHN);
+            assertNotNull(personVar);
+            assertThrows(KieServicesException.class, () -> processClient.setProcessVariable(CONTAINER_ID_RESTART,
+                    processInstanceId, "personData", personVar));
+            
+        } finally {
+            processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
+        }
+
+    }
 
     @Test
     public void testManipulateProcessVariables() throws Exception {
@@ -498,6 +565,26 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
         }
 
     }
+    
+        
+    @Test
+    public void testGetProcessInstanceWrongContainer() {
+        
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("stringData", "waiting for signal");
+        parameters.put("personData", createPersonInstance(USER_JOHN));
+
+        Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_SIGNAL_PROCESS, parameters);
+        assertNotNull(processInstanceId);
+        assertTrue(processInstanceId > 0);
+        
+        try {
+            assertThrows(KieServicesException.class, () -> processClient.getProcessInstance(CONTAINER_ID_RESTART,
+                    processInstanceId, true));
+        } finally {
+            processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
+        }
+    }
 
     @Test
     public void testGetProcessInstanceWithVariables() throws Exception {
@@ -541,6 +628,9 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
         }
 
     }
+    
+
+
 
     @Test(expected = KieServicesException.class)
     public void testGetNonExistingProcessInstance() {
@@ -617,6 +707,41 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
             changeUser(TestConfig.getUsername());
         }
     }
+    
+    @Test
+    public void testWorkItemOperationWrongContainer() throws Exception {
+
+        Map<String, Object> parameters = new HashMap<>();
+
+        parameters.put("person", createPersonInstance(USER_JOHN));
+
+        Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_EVALUATION, parameters);
+        try {
+            assertNotNull(processInstanceId);
+            assertTrue(processInstanceId > 0);
+
+            // Completing human task so we can move in process flow to work item.
+            // User task shouldn't be handled as work item because in such case it doesn't behave consistently:
+            // i.e. leaving open tasks after finishing process instance.
+            List<String> status = Collections.singletonList(Status.Ready.toString());
+            List<TaskSummary> taskList = taskClient.findTasksByStatusByProcessInstanceId(processInstanceId, status, 0, 10);
+
+            assertEquals(1, taskList.size());
+            TaskSummary taskSummary = taskList.get(0);
+            taskClient.startTask(CONTAINER_ID, taskSummary.getId(), USER_YODA);
+            taskClient.completeTask(CONTAINER_ID, taskSummary.getId(), USER_YODA, null);
+
+            TaskInstance userTask = taskClient.findTaskById(taskSummary.getId());
+            assertNotNull(userTask);
+            assertEquals("Evaluate items?", userTask.getName());
+            assertEquals(Status.Completed.toString(), userTask.getStatus());
+            assertThrows(KieServicesException.class, () -> processClient.getWorkItemByProcessInstance(
+                    CONTAINER_ID_RESTART, processInstanceId));
+        } finally {
+            processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
+            changeUser(TestConfig.getUsername());
+        }
+    }
 
     @Test
     public void testWorkItemOperationComplete() throws Exception {
@@ -664,6 +789,48 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
             changeUser(TestConfig.getUsername());
         }
     }
+    
+    @Test
+    public void testWorkItemOperationCompleteWrongContainer() throws Exception {
+
+        Map<String, Object> parameters = new HashMap<>();
+
+        Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_EVALUATION, parameters);
+        try {
+            assertNotNull(processInstanceId);
+            assertTrue(processInstanceId > 0);
+
+            // Completing human task so we can move in process flow to work item.
+            // User task shouldn't be handled as work item because in such case it doesn't behave consistently:
+            // i.e. leaving open tasks after finishing process instance.
+            List<String> status = Collections.singletonList(Status.Ready.toString());
+            List<TaskSummary> taskList = taskClient.findTasksByStatusByProcessInstanceId(processInstanceId, status, 0, 10);
+
+            assertEquals(1, taskList.size());
+            TaskSummary taskSummary = taskList.get(0);
+            taskClient.startTask(CONTAINER_ID, taskSummary.getId(), USER_YODA);
+            taskClient.completeTask(CONTAINER_ID, taskSummary.getId(), USER_YODA, null);
+
+            TaskInstance userTask = taskClient.findTaskById(taskSummary.getId());
+            assertNotNull(userTask);
+            assertEquals("Evaluate items?", userTask.getName());
+            assertEquals(Status.Completed.toString(), userTask.getStatus());
+
+            List<WorkItemInstance> workItems = processClient.getWorkItemByProcessInstance(CONTAINER_ID, processInstanceId);
+            assertNotNull(workItems);
+            assertEquals(1, workItems.size());
+
+            WorkItemInstance workItemInstance = workItems.get(0);
+            assertNotNull(workItemInstance);
+
+            assertThrows(KieServicesException.class, () -> processClient.completeWorkItem(CONTAINER_ID_RESTART,
+                    processInstanceId, workItemInstance.getId(), parameters));
+        } finally {
+            processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
+            changeUser(TestConfig.getUsername());
+        }
+    }
+
 
     @Test
     public void testStartCheckProcessWithCorrelationKey() throws Exception {
@@ -921,6 +1088,53 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
     }
 
     @Test
+    public void testActiveNodeInstancesWrongContainer() {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("stringData", "waiting for signal");
+        parameters.put("personData", createPersonInstance(USER_JOHN));
+        Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_USERTASK, parameters);
+        try {
+            assertThrows(KieServicesException.class, () -> processClient.findActiveNodeInstances(CONTAINER_ID_RESTART,
+                    processInstanceId, 0, 10));
+        } finally {
+            processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
+        }
+    }
+
+    @Test
+    public void testCompleteNodeInstancesWrongContainer() {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("stringData", "waiting for signal");
+        parameters.put("personData", createPersonInstance(USER_JOHN));
+
+        Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_USERTASK, parameters);
+
+        try {
+            List<NodeInstance> instances = processClient.findActiveNodeInstances(CONTAINER_ID, processInstanceId, 0, 10);
+            assertNotNull(instances);
+            assertEquals(1, instances.size());
+
+            NodeInstance expectedFirstTask = NodeInstance
+                    .builder()
+                    .name("First task")
+                    .containerId(CONTAINER_ID)
+                    .nodeType("HumanTaskNode")
+                    .completed(false)
+                    .processInstanceId(processInstanceId)
+                    .build();
+            NodeInstance nodeInstance = instances.get(0);
+            assertNodeInstance(expectedFirstTask, nodeInstance);
+            assertNotNull(nodeInstance.getWorkItemId());
+            assertNotNull(nodeInstance.getDate());
+
+            assertThrows(KieServicesException.class, () -> processClient.findCompletedNodeInstances(
+                    CONTAINER_ID_RESTART, processInstanceId, 0, 10));
+        } finally {
+            processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
+        }
+    }
+
+    @Test
     public void testCallActivityProcess() {
         Map<String, Object> parameters = new HashMap<String, Object>();
 
@@ -976,6 +1190,59 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
             processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
             fail(e.getMessage());
         }
+    }
+
+    @Test
+    public void testFindParentWrongContainer() {
+        Map<String, Object> parameters = new HashMap<>();
+
+        Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_CALL_EVALUATION, parameters);
+
+        assertNotNull(processInstanceId);
+        assertTrue(processInstanceId > 0);
+
+        // Process instance is running and is active.
+        ProcessInstance processInstance = processClient.getProcessInstance(CONTAINER_ID, processInstanceId);
+        assertNotNull(processInstance);
+        assertEquals(STATE_ACTIVE, processInstance.getState().intValue());
+
+        List<TaskSummary> tasks = taskClient.findTasksAssignedAsPotentialOwner(USER_YODA, 0, 10);
+        assertEquals(1, tasks.size());
+
+        taskClient.completeAutoProgress(CONTAINER_ID, tasks.get(0).getId(), USER_YODA, null);
+
+        List<ProcessInstance> instances = processClient.findProcessInstancesByParent(CONTAINER_ID, processInstanceId, 0,
+                10);
+        assertEquals(1, instances.size());
+
+        ProcessInstance childInstance = instances.get(0);
+        assertNotNull(childInstance);
+        assertEquals(PROCESS_ID_EVALUATION, childInstance.getProcessId());
+        assertEquals(processInstanceId, childInstance.getParentId());
+
+        List<NodeInstance> activeNodes = queryClient.findActiveNodeInstances(processInstanceId, 0, 10);
+        assertEquals(1, activeNodes.size());
+
+        NodeInstance active = activeNodes.get(0);
+        assertEquals("Call Evaluation", active.getName());
+        assertEquals("SubProcessNode", active.getNodeType());
+        assertEquals(childInstance.getId(), active.getReferenceId());
+
+        processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
+
+        // Process instance is now aborted.
+        processInstance = processClient.getProcessInstance(CONTAINER_ID, processInstanceId);
+        assertNotNull(processInstance);
+        assertEquals(STATE_ABORTED, processInstance.getState().intValue());
+
+        processInstance = processClient.getProcessInstance(CONTAINER_ID, childInstance.getId());
+        assertNotNull(processInstance);
+        assertEquals(STATE_ABORTED, processInstance.getState().intValue());
+
+        assertThrows(KieServicesException.class, () -> processClient.findProcessInstancesByParent(
+                CONTAINER_ID_RESTART, processInstanceId, Collections
+                        .singletonList(STATE_ABORTED), 0, 10));
+
     }
 
     @Test
@@ -1042,6 +1309,21 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
             processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
         }
 
+    }
+    
+    @Test
+    public void testFindVariableInstancesWrongContainer() {
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("stringData", "waiting for signal");
+        parameters.put("personData", createPersonInstance(USER_JOHN));
+
+        Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_USERTASK, parameters);
+        try {
+            assertThrows(KieServicesException.class, () -> processClient.findVariablesCurrentState(CONTAINER_ID_RESTART,
+                    processInstanceId));
+        } finally {
+            processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
+        }
     }
 
     @Test
@@ -1152,9 +1434,6 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
                 processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
             }
         }
-
-
-
     }
 
     protected List<Long> createProcessInstances(Map<String, Object> parameters) {

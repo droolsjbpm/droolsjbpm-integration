@@ -954,9 +954,9 @@ public class ProcessResource  {
         try {
             NodeInstanceList nodeInstanceList = null;
             if (processInstHistoryType == null) {
-                nodeInstanceList = runtimeDataServiceBase.getProcessInstanceHistory(processInstanceId, active, completed, page, pageSize);
+                nodeInstanceList = runtimeDataServiceBase.getProcessInstanceHistory(containerId, processInstanceId, active, completed, page, pageSize);
             } else {
-                nodeInstanceList = runtimeDataServiceBase.getProcessInstanceFullHistoryByType(processInstanceId, processInstHistoryType, page, pageSize);
+                nodeInstanceList = runtimeDataServiceBase.getProcessInstanceFullHistoryByType(containerId, processInstanceId, processInstHistoryType, page, pageSize);
             }
             logger.debug("Returning result of node instances search: {}", nodeInstanceList);
             return createCorrectVariant(nodeInstanceList, headers, Response.Status.OK, conversationIdHeader);
@@ -985,7 +985,7 @@ public class ProcessResource  {
         Variant v = getVariant(headers);
         Header conversationIdHeader = buildConversationIdHeader(containerId, context, headers);
         try {
-            VariableInstanceList variableInstanceList = runtimeDataServiceBase.getVariablesCurrentState(processInstanceId);
+            VariableInstanceList variableInstanceList = runtimeDataServiceBase.getVariablesCurrentState(containerId, processInstanceId);
             logger.debug("Returning result of variables search: {}", variableInstanceList);
     
             return createCorrectVariant(variableInstanceList, headers, Response.Status.OK, conversationIdHeader);
@@ -1017,7 +1017,7 @@ public class ProcessResource  {
         Header conversationIdHeader = buildConversationIdHeader(containerId, context, headers);
         Variant v = getVariant(headers);
         try {
-            VariableInstanceList variableInstanceList = runtimeDataServiceBase.getVariableHistory(processInstanceId, variableName, page, pageSize);
+            VariableInstanceList variableInstanceList = runtimeDataServiceBase.getVariableHistory(containerId, processInstanceId, variableName, page, pageSize);
             logger.debug("Returning result of variable '{}; history search: {}", variableName, variableInstanceList);
     
             return createCorrectVariant(variableInstanceList, headers, Response.Status.OK, conversationIdHeader);
@@ -1048,7 +1048,7 @@ public class ProcessResource  {
             @ApiParam(value = "optional sort direction (asc, desc) - defaults to asc", required = false) @QueryParam("sortOrder") @DefaultValue("true") boolean sortOrder) {
 
         Header conversationIdHeader = buildConversationIdHeader(containerId, context, headers);
-        ProcessInstanceList processInstanceList = processServiceBase.getProcessInstancesByParent(parentProcessInstanceId, status, page, pageSize, sort, sortOrder);
+        ProcessInstanceList processInstanceList = processServiceBase.getProcessInstancesByParent(containerId, parentProcessInstanceId, status, page, pageSize, sort, sortOrder);
         logger.debug("Returning result of process instance search: {}", processInstanceList);
 
         return createCorrectVariant(processInstanceList, headers, Response.Status.OK, conversationIdHeader);
