@@ -16,6 +16,7 @@
 package org.kie.server.integrationtests.router.rest;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -125,13 +126,13 @@ public class KieServerRouterUnavailabilityIntegrationTest extends RestOnlyBaseIn
 
             Configuration config = routerClient.getRouterConfig();
 
-            assertEquals(3, config.getHostsPerContainer().size());
-            assertEquals(3, config.getHostsPerServer().size());
+            assertEquals(2, config.getHostsPerContainer().size());
+            assertEquals(2, config.getHostsPerServer().size());
 
-            assertEquals(0, config.getHostsPerContainer().get("container1").size());
+            assertNull(config.getHostsPerContainer().get("container1"));
             assertEquals(1, config.getHostsPerContainer().get("container2").size());
             assertEquals(1, config.getHostsPerContainer().get("container3").size());
-            assertEquals(0, config.getHostsPerServer().get("server1").size());
+            assertNull(config.getHostsPerServer().get("server1"));
             assertEquals(1, config.getHostsPerServer().get("server2").size());
             assertEquals(1, config.getHostsPerServer().get("server3").size());
         } finally {
@@ -166,15 +167,15 @@ public class KieServerRouterUnavailabilityIntegrationTest extends RestOnlyBaseIn
 
             // since there are no servers connected and query operations are broadcasts all should be cleared
             Configuration config = routerClient.getRouterConfig();
-            assertEquals(3, config.getHostsPerContainer().size());
-            assertEquals(3, config.getHostsPerServer().size());
+            assertEquals(0, config.getHostsPerContainer().size());
+            assertEquals(0, config.getHostsPerServer().size());
 
-            assertEquals(0, config.getHostsPerContainer().get("container1").size());
-            assertEquals(0, config.getHostsPerContainer().get("container2").size());
-            assertEquals(0, config.getHostsPerContainer().get("container3").size());
-            assertEquals(0, config.getHostsPerServer().get("server1").size());
-            assertEquals(0, config.getHostsPerServer().get("server2").size());
-            assertEquals(0, config.getHostsPerServer().get("server3").size());
+            assertNull(config.getHostsPerContainer().get("container1"));
+            assertNull(config.getHostsPerContainer().get("container2"));
+            assertNull(config.getHostsPerContainer().get("container3"));
+            assertNull(config.getHostsPerServer().get("server1"));
+            assertNull(config.getHostsPerServer().get("server2"));
+            assertNull(config.getHostsPerServer().get("server3"));
 
         } finally {
             if(response != null) {
@@ -207,15 +208,15 @@ public class KieServerRouterUnavailabilityIntegrationTest extends RestOnlyBaseIn
 
             Configuration config = routerClient.getRouterConfig();
 
-            assertEquals(3, config.getHostsPerContainer().size());
-            assertEquals(3, config.getHostsPerServer().size());
+            assertEquals(2, config.getHostsPerContainer().size());
+            assertEquals(2, config.getHostsPerServer().size());
 
             assertEquals(1, config.getHostsPerContainer().get("container1").size());
             assertEquals(1, config.getHostsPerContainer().get("container2").size());
-            assertEquals(0, config.getHostsPerContainer().get("container3").size());
+            assertNull(config.getHostsPerContainer().get("container3"));
             assertEquals(1, config.getHostsPerServer().get("server1").size());
             assertEquals(1, config.getHostsPerServer().get("server2").size());
-            assertEquals(0, config.getHostsPerServer().get("server3").size());
+            assertNull(config.getHostsPerServer().get("server3"));
         } finally {
             if(response != null) {
                 response.close();

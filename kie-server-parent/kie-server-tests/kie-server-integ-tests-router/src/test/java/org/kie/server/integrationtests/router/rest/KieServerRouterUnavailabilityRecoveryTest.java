@@ -19,6 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -146,11 +147,11 @@ public class KieServerRouterUnavailabilityRecoveryTest {
             
             config = routerClient.getRouterConfig();
 
-            assertEquals(1, config.getHostsPerContainer().size());
-            assertEquals(1, config.getHostsPerServer().size());
+            assertEquals(0, config.getHostsPerContainer().size());
+            assertEquals(0, config.getHostsPerServer().size());
 
-            assertEquals(0, config.getHostsPerContainer().get("container1").size());
-            assertEquals(0, config.getHostsPerServer().get("server1").size());
+            assertNull(config.getHostsPerContainer().get("container1"));
+            assertNull(config.getHostsPerServer().get("server1"));
             
             CountDownLatch latch = listener.activate();
             wireMockServer.start();

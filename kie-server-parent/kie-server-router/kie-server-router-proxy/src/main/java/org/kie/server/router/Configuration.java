@@ -101,6 +101,9 @@ public class Configuration {
         List<String> hosts = hostsPerContainer.get(containerId);
         if (hosts != null) {
             hosts.remove(serverUrl);
+            if(hosts.isEmpty()) {
+                hostsPerContainer.remove(containerId);
+            }
         }
 
         this.listeners.forEach(l -> l.onContainerRemoved(containerId, serverUrl));
@@ -110,34 +113,35 @@ public class Configuration {
         List<String> hosts = hostsPerServer.get(serverId);
         if (hosts != null) {
             hosts.remove(serverUrl);
+            if(hosts.isEmpty()) {
+                hostsPerServer.remove(serverId);
+            }
         }
 
         this.listeners.forEach(l -> l.onServerRemoved(serverId, serverUrl));
     }
 
     public void removeContainerInfo(ContainerInfo containerInfo) {
-        List<ContainerInfo> containersById = containerInfosPerContainer.get(containerInfo.getContainerId());
+        removeContainerBy(containerInfo, containerInfo.getContainerId());
+        removeContainerBy(containerInfo, containerInfo.getAlias());
+    }
+
+    public void removeContainerBy(ContainerInfo containerInfo, String containerId) {
+        List<ContainerInfo> containersById = containerInfosPerContainer.get(containerId);
 
         if (containersById == null) {
-            log.warn("Container info with id '" + containerInfo.getContainerId() + "' is not found, nothing is removed.");
+            log.warnv("Container info with id or alias '{}' is not found, nothing is removed.", containerId);
+            return;
+        }
+
+        List<String> hosts = hostsPerContainer.getOrDefault(containerId, Collections.emptyList());
+        if (!hosts.isEmpty()) {
             return;
         }
 
         containersById.remove(containerInfo);
-        
-        List<String> hosts = hostsPerContainer.getOrDefault(containerInfo.getContainerId(), Collections.emptyList());
-        if (hosts.isEmpty()) {
-            containerInfosPerContainer.remove(containerInfo.getContainerId());
-        }
-        
-        List<ContainerInfo> containersByAlias = containerInfosPerContainer.get(containerInfo.getAlias());
-        if (containersByAlias != null) {
-            containersByAlias.remove(containerInfo);
-            
-            hosts = hostsPerContainer.getOrDefault(containerInfo.getAlias(), Collections.emptyList());
-            if (hosts.isEmpty()) {
-                containerInfosPerContainer.remove(containerInfo.getAlias());
-            }
+        if(containersById.isEmpty()) {
+            containerInfosPerContainer.remove(containerId);
         }
     }
 

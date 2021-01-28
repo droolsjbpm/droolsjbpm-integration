@@ -17,6 +17,7 @@ package org.kie.server.router.repository;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -150,12 +151,12 @@ public class FileRepositoryTest {
             assertNotNull(loaded);
             assertNotNull(loaded.getHostsPerContainer());
             assertNotNull(loaded.getHostsPerServer());
-            assertEquals(2, loaded.getHostsPerContainer().size());
-            assertEquals(2, loaded.getHostsPerServer().size());
+            assertEquals(1, loaded.getHostsPerContainer().size());
+            assertEquals(1, loaded.getHostsPerServer().size());
             assertEquals(2, loaded.getContainerInfosPerContainer().size());
             
             assertEquals(1, loaded.getHostsPerContainer().get("container1").size());
-            assertEquals(0, loaded.getHostsPerContainer().get("container2").size());
+            assertNull(loaded.getHostsPerContainer().get("container2"));
         }
         repoWithWatcher.close();
         repoWithWatcher.clean();
