@@ -371,7 +371,7 @@ public class UserTaskAdminResource {
     @ApiOperation(value="Schedules a specified task instance to be reassigned to specified users or groups and returns the ID of the reassignment.")
     @ApiResponses(value = { @ApiResponse(code = 500, message = "Unexpected error"),
             @ApiResponse(code = 404, message = "Task instance or Container Id not found"), 
-            @ApiResponse(code = 201, response = Long.class, message = "Successfull response", examples=@Example(value= {
+            @ApiResponse(code = 201, response = Long.class, message = "Successful response", examples=@Example(value= {
                     @ExampleProperty(mediaType=JSON, value=INTEGER_JSON)})) })
     @POST
     @Path(TASK_INSTANCE_REASSIGNMENTS_URI)
@@ -421,7 +421,7 @@ public class UserTaskAdminResource {
     @ApiOperation(value="Creates an email notification for the specified task instance and returns the ID of the new notification.")
     @ApiResponses(value = { @ApiResponse(code = 500, message = "Unexpected error"),
             @ApiResponse(code = 404, message = "Task instance or Container Id not found"), 
-            @ApiResponse(code = 201, response = Long.class, message = "Successfull response", examples=@Example(value= {
+            @ApiResponse(code = 201, response = Long.class, message = "Successful response", examples=@Example(value= {
                     @ExampleProperty(mediaType=JSON, value=INTEGER_JSON)})) })
     @POST
     @Path(TASK_INSTANCE_NOTIFICATIONS_URI)
@@ -522,7 +522,7 @@ public class UserTaskAdminResource {
     @ApiOperation(value="Returns task reassignments for a specified task instance.")
     @ApiResponses(value = { @ApiResponse(code = 500, message = "Unexpected error"),
             @ApiResponse(code = 404, message = "Task instance or Container Id not found"), 
-            @ApiResponse(code = 200, response = TaskReassignmentList.class, message = "Successfull response", examples=@Example(value= {
+            @ApiResponse(code = 200, response = TaskReassignmentList.class, message = "Successful response", examples=@Example(value= {
                     @ExampleProperty(mediaType=JSON, value=GET_TASK_REASSIGNMENTS_RESPONSE_JSON)})) })
     @GET
     @Path(TASK_INSTANCE_REASSIGNMENTS_URI)
@@ -550,7 +550,7 @@ public class UserTaskAdminResource {
     @ApiOperation(value="Returns notifications created for a specified task instance.")
     @ApiResponses(value = { @ApiResponse(code = 500, message = "Unexpected error"),
             @ApiResponse(code = 404, message = "Task instance or Container Id not found"), 
-            @ApiResponse(code = 200, response = TaskNotificationList.class, message = "Successfull response", examples=@Example(value= {
+            @ApiResponse(code = 200, response = TaskNotificationList.class, message = "Successful response", examples=@Example(value= {
                     @ExampleProperty(mediaType=JSON, value=GET_TASK_NOTIFICATIONS_RESPONSE_JSON)})) })
     @GET
     @Path(TASK_INSTANCE_NOTIFICATIONS_URI)
@@ -630,7 +630,7 @@ public class UserTaskAdminResource {
     @ApiOperation(value="Returns information about a specified task execution error.")
     @ApiResponses(value = { @ApiResponse(code = 500, message = "Unexpected error"),
             @ApiResponse(code = 404, message = "Task instance or Container Id not found"), 
-            @ApiResponse(code = 200, response = ExecutionErrorInstance.class, message = "Successfull response", examples=@Example(value= {
+            @ApiResponse(code = 200, response = ExecutionErrorInstance.class, message = "Successful response", examples=@Example(value= {
                     @ExampleProperty(mediaType=JSON, value=GET_EXEC_ERROR_RESPONSE_JSON)})) })
     @GET
     @Path(ERROR_GET_URI)
@@ -657,7 +657,7 @@ public class UserTaskAdminResource {
     @ApiOperation(value="Returns task execution errors for a specified task instance.")
     @ApiResponses(value = { @ApiResponse(code = 500, message = "Unexpected error"),
             @ApiResponse(code = 404, message = "Container Id not found"), 
-            @ApiResponse(code = 200, response = ExecutionErrorInstanceList.class, message = "Successfull response", examples=@Example(value= {
+            @ApiResponse(code = 200, response = ExecutionErrorInstanceList.class, message = "Successful response", examples=@Example(value= {
                     @ExampleProperty(mediaType=JSON, value=GET_EXEC_ERRORS_RESPONSE_JSON)})) })
     @GET
     @Path(ERRORS_BY_TASK_ID_GET_URI)
@@ -689,7 +689,7 @@ public class UserTaskAdminResource {
     @ApiOperation(value="Returns all task execution errors for a specified KIE container.")
     @ApiResponses(value = { @ApiResponse(code = 500, message = "Unexpected error"),
             @ApiResponse(code = 404, message = "Container Id not found"), 
-            @ApiResponse(code = 200, response = ExecutionErrorInstanceList.class, message = "Successfull response", examples=@Example(value= {
+            @ApiResponse(code = 200, response = ExecutionErrorInstanceList.class, message = "Successful response", examples=@Example(value= {
                     @ExampleProperty(mediaType=JSON, value=GET_EXEC_ERRORS_RESPONSE_JSON)})) })
     @GET
     @Path(ERRORS_GET_URI)

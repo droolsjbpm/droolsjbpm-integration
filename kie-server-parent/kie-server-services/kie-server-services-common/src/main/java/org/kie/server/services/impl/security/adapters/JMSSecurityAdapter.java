@@ -85,7 +85,7 @@ public class JMSSecurityAdapter implements SecurityAdapter {
             LoginContext lc = new LoginContext( domain, handler);
             lc.login();
             Subject subject = lc.getSubject();
-            logger.debug("Login successfull and subject is {}", subject);
+            logger.debug("Login Successful and subject is {}", subject);
             UserDetails userDetails = new UserDetails();
             userDetails.setName(user);
             List<String> roles = new ArrayList<String>();
