@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.jbpm.process.svg.SVGImageProcessor;
 import org.jbpm.process.svg.processor.SVGProcessor;
@@ -114,11 +115,11 @@ public class ImageServiceBase {
     }
 
     public String getActiveProcessImage(String containerId, long procInstId) {
-        return getActiveProcessImage(containerId, procInstId, COMPLETED_COLOR, COMPLETED_BORDER_COLOR, ACTIVE_BORDER_COLOR);
+        return getActiveProcessImage(containerId, procInstId, COMPLETED_COLOR, COMPLETED_BORDER_COLOR, ACTIVE_BORDER_COLOR, false);
     }
 
     public String getActiveProcessImage(String containerId, long procInstId, String completedNodeColor,
-                                        String completedNodeBorderColor, String activeNodeBorderColor) {
+                                        String completedNodeBorderColor, String activeNodeBorderColor, Boolean showBadges) {
         ProcessInstanceDesc instance = dataService.getProcessInstanceById(procInstId);
         if (instance == null) {
             throw new ProcessInstanceNotFoundException("No instance found for process instance id " + procInstId);
@@ -149,11 +150,20 @@ public class ImageServiceBase {
                 populateSubProcessLink(containerId, completeNode, subProcessLinks);
             }
 
+            Map<String, Long> badges = null;
+            if (showBadges) {
+                Collection<NodeInstanceDesc> allNodes = new ArrayList<>();
+                allNodes.addAll(completedLogs);
+                allNodes.addAll(activeLogs);
+
+                badges = allNodes.stream().collect(Collectors.groupingBy(NodeInstanceDesc::getNodeId, Collectors.counting()));
+            }
+
             ByteArrayInputStream svgStream = new ByteArrayInputStream(imageSVG);
 
             imageSVGString = SVGImageProcessor.transform(svgStream, completed, new ArrayList<String>(active.values()),
                                                          subProcessLinks, completedNodeColor, completedNodeBorderColor,
-                                                         activeNodeBorderColor);
+                                                         activeNodeBorderColor, badges);
 
             return imageSVGString;
         }
