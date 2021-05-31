@@ -373,7 +373,7 @@
               <arguments>run build</arguments>
             </configuration>
           </execution>
-          <execution>
+           <execution>
             <id>run tests</id>
             <phase>test</phase>
             <goals>
@@ -381,6 +381,55 @@
             </goals>
             <configuration>
               <arguments>test</arguments>
+            </configuration>
+          </execution>
+          <execution>
+            <id>run cypress scripts</id>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>npm</goal>
+            </goals>
+            <configuration>
+              <arguments>run test:it</arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <!--
+        Run Cypress tests in a docker container.
+        See https://www.cypress.io/blog/2019/05/02/run-cypress-with-a-single-docker-command.
+      -->
+      <plugin>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <executions>
+          <execution>
+            <id>run-cypress-tests</id>
+            <phase>integration-test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${container.runtime}</executable>
+              <workingDirectory>${project.parent.basedir}/${frontend.project.name}</workingDirectory>
+              <arguments>
+                <argument>run</argument>
+                <argument>--network=host</argument> <!-- Cypress accesses UI running on the host. -->
+                <argument>--volume</argument>
+                <argument>${project.parent.basedir}/${frontend.project.name}:/e2e:Z</argument>
+                <argument>--workdir</argument>
+                <argument>/e2e</argument>
+                <argument>${user.flag}</argument>
+                <argument>${user.name.group}</argument>
+                <argument>--entrypoint</argument>
+                <argument>cypress</argument>
+                <argument>cypress/included:${version.cypress.docker}</argument>
+                <argument>run</argument> <!-- Executing cypress:run. -->
+                <argument>--project</argument>
+                <argument>.</argument>
+                <argument>--config</argument>
+                <argument>baseUrl=${application.url}</argument>
+              </arguments>
             </configuration>
           </execution>
         </executions>

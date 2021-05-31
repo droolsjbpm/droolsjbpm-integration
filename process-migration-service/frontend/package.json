@@ -13,7 +13,9 @@
     "start": "node src/bin/server.js",
     "test": "jest",
     "precommit": "lint-staged",
-    "locktt": "locktt"
+    "locktt": "locktt",
+    "cypress:run": "cypress run",
+    "test:it": "start-server-and-test start http://localhost:3000 cypress:run"
   },
   "lint-staged": {
     "src/**/*.{js,jsx,json,css,md}": [
@@ -35,6 +37,7 @@
     "bootstrap": "^4.3.1",
     "bootstrap-sass": "^3.4.1",
     "css-loader": "^2.1.1",
+    "cypress": "^6.6.0",
     "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.3.0",
     "eslint-loader": "^2.1.2",
@@ -49,6 +52,7 @@
     "lint-staged": "^8.2.1",
     "lock-treatment-tool": "^0.4.1",
     "moment": "^2.24.0",
+    "node": "^11.6.0",
     "patternfly-react": "^2.36.2",
     "prettier": "^1.18.2",
     "prop-types": "^15.7.2",
@@ -60,6 +64,7 @@
     "react-svgmt": "^1.1.8",
     "react-test-renderer": "^16.8.6",
     "react-testing-library": "^6.1.2",
+    "start-server-and-test": "^1.12.0",
     "style-loader": "^0.23.1",
     "styled-components": "^4.3.2",
     "url-loader": "^2.0.1",
