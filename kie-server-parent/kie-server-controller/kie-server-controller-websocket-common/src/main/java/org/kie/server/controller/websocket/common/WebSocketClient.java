@@ -18,7 +18,8 @@ package org.kie.server.controller.websocket.common;
 
 import java.io.IOException;
 import java.util.function.Consumer;
-import javax.websocket.MessageHandler;
+
+import jakarta.websocket.MessageHandler;
 
 import org.kie.server.controller.websocket.common.config.WebSocketClientConfiguration;
 

@@ -72,6 +72,16 @@
     <dependency>
       <groupId>org.drools</groupId>
       <artifactId>kie-pmml</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.xml.bind</groupId>
+          <artifactId>jaxb-api</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>javax.activation</groupId>
+          <artifactId>activation</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- appformer workbench models -->

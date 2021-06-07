@@ -30,6 +30,12 @@
     <dependency>
       <groupId>org.kie.server</groupId>
       <artifactId>kie-server-services-drools</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.xml.bind</groupId>
+          <artifactId>jaxb-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.kie.server</groupId>

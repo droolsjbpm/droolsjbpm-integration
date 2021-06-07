@@ -47,6 +47,12 @@ Found 1 illegal transitive type dependencies in artifact 'org.kie.server:kie-ser
     <dependency>
       <groupId>org.kie.server</groupId>
       <artifactId>kie-server-services-dmn</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.xml.bind</groupId>
+          <artifactId>jaxb-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency> 
     <dependency>
       <groupId>org.kie.server</groupId>

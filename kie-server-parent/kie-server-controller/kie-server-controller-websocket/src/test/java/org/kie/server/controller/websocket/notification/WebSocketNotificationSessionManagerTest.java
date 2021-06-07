@@ -18,18 +18,24 @@ package org.kie.server.controller.websocket.notification;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import javax.websocket.EncodeException;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
 
+import jakarta.websocket.EncodeException;
+import jakarta.websocket.RemoteEndpoint;
+import jakarta.websocket.Session;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.kie.server.controller.api.model.notification.KieServerControllerNotification;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebSocketNotificationSessionManagerTest {

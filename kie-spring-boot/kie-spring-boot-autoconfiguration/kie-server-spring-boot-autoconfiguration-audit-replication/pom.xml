@@ -133,6 +133,10 @@
           <groupId>org.apache.tomcat</groupId>
           <artifactId>tomcat-annotations-api</artifactId>
         </exclusion>
+        <exclusion>
+            <groupId>org.glassfish</groupId>
+            <artifactId>jakarta.el</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     
@@ -278,6 +282,14 @@
         <groupId>org.kie</groupId>
           <artifactId>kie-server-spring-boot-starter</artifactId>
           <scope>test</scope>
+          <exclusions>
+              <exclusion>
+                  <groupId>org.jboss.spec.javax.transaction</groupId>
+                  <artifactId>
+                      jboss-transaction-api_1.2_spec
+                  </artifactId>
+              </exclusion>
+          </exclusions>
     </dependency>
     <dependency>
         <groupId>com.h2database</groupId>

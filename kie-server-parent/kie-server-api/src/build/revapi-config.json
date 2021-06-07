@@ -17,7 +17,94 @@
   "ignores": {
     "revapi": {
       "_comment": "Changes between 7.48.0.Final and the current branch. These changes are desired and thus ignored.",
-      "ignore": []
+      "ignore": [
+        {
+          "code": "java.field.typeChanged",
+          "old": "field com.fasterxml.jackson.databind.type.TypeFactory._typeCache @ org.kie.server.api.marshalling.json.FallbackableTypeFactory",
+          "new": "field com.fasterxml.jackson.databind.type.TypeFactory._typeCache @ org.kie.server.api.marshalling.json.FallbackableTypeFactory",
+          "oldType": "com.fasterxml.jackson.databind.util.LRUMap<java.lang.Object, com.fasterxml.jackson.databind.JavaType>",
+          "newType": "com.fasterxml.jackson.databind.util.LookupCache<java.lang.Object, com.fasterxml.jackson.databind.JavaType>",
+          "package": "org.kie.server.api.marshalling.json",
+          "classSimpleName": "FallbackableTypeFactory",
+          "fieldName": "_typeCache",
+          "elementKind": "field",
+          "justification": "upgrade to jackson 2.12.1"
+        },
+        {
+          "code": "java.field.serialVersionUIDUnchanged",
+          "old": "field org.kie.server.api.marshalling.json.FallbackableTypeFactory.serialVersionUID",
+          "new": "field org.kie.server.api.marshalling.json.FallbackableTypeFactory.serialVersionUID",
+          "serialVersionUID": "1",
+          "package": "org.kie.server.api.marshalling.json",
+          "classSimpleName": "FallbackableTypeFactory",
+          "fieldName": "serialVersionUID",
+          "elementKind": "field",
+          "justification": "upgrade to jackson 2.12.1"
+        },
+        {
+          "code": "java.method.parameterTypeChanged",
+          "old": "parameter void org.kie.server.api.marshalling.json.FallbackableTypeFactory::<init>(===com.fasterxml.jackson.databind.util.LRUMap<java.lang.Object, com.fasterxml.jackson.databind.JavaType>===)",
+          "new": "parameter void org.kie.server.api.marshalling.json.FallbackableTypeFactory::<init>(===com.fasterxml.jackson.databind.util.LookupCache<java.lang.Object, com.fasterxml.jackson.databind.JavaType>===)",
+          "oldType": "com.fasterxml.jackson.databind.util.LRUMap<java.lang.Object, com.fasterxml.jackson.databind.JavaType>",
+          "newType": "com.fasterxml.jackson.databind.util.LookupCache<java.lang.Object, com.fasterxml.jackson.databind.JavaType>",
+          "package": "org.kie.server.api.marshalling.json",
+          "classSimpleName": "FallbackableTypeFactory",
+          "methodName": "<init>",
+          "parameterIndex": "0",
+          "elementKind": "parameter",
+          "justification": "upgrade to jackson 2.12.1"
+        },
+        {
+          "code": "java.method.parameterTypeChanged",
+          "old": "parameter void org.kie.server.api.marshalling.json.FallbackableTypeFactory::<init>(===com.fasterxml.jackson.databind.util.LRUMap<java.lang.Object, com.fasterxml.jackson.databind.JavaType>===, com.fasterxml.jackson.databind.type.TypeParser, com.fasterxml.jackson.databind.type.TypeModifier[], java.lang.ClassLoader)",
+          "new": "parameter void org.kie.server.api.marshalling.json.FallbackableTypeFactory::<init>(===com.fasterxml.jackson.databind.util.LookupCache<java.lang.Object, com.fasterxml.jackson.databind.JavaType>===, com.fasterxml.jackson.databind.type.TypeParser, com.fasterxml.jackson.databind.type.TypeModifier[], java.lang.ClassLoader)",
+          "oldType": "com.fasterxml.jackson.databind.util.LRUMap<java.lang.Object, com.fasterxml.jackson.databind.JavaType>",
+          "newType": "com.fasterxml.jackson.databind.util.LookupCache<java.lang.Object, com.fasterxml.jackson.databind.JavaType>",
+          "package": "org.kie.server.api.marshalling.json",
+          "classSimpleName": "FallbackableTypeFactory",
+          "methodName": "<init>",
+          "parameterIndex": "0",
+          "elementKind": "parameter",
+          "justification": "upgrade to jackson 2.12.1"
+        },
+        {
+          "code": "java.method.parameterTypeChanged",
+          "old": "parameter void org.kie.server.api.marshalling.json.FallbackableTypeFactory::<init>(===com.fasterxml.jackson.databind.util.LRUMap<java.lang.Object, com.fasterxml.jackson.databind.JavaType>===, com.fasterxml.jackson.databind.type.TypeParser, com.fasterxml.jackson.databind.type.TypeModifier[], java.lang.ClassLoader, java.lang.ClassLoader)",
+          "new": "parameter void org.kie.server.api.marshalling.json.FallbackableTypeFactory::<init>(===com.fasterxml.jackson.databind.util.LookupCache<java.lang.Object, com.fasterxml.jackson.databind.JavaType>===, com.fasterxml.jackson.databind.type.TypeParser, com.fasterxml.jackson.databind.type.TypeModifier[], java.lang.ClassLoader, java.lang.ClassLoader)",
+          "oldType": "com.fasterxml.jackson.databind.util.LRUMap<java.lang.Object, com.fasterxml.jackson.databind.JavaType>",
+          "newType": "com.fasterxml.jackson.databind.util.LookupCache<java.lang.Object, com.fasterxml.jackson.databind.JavaType>",
+          "package": "org.kie.server.api.marshalling.json",
+          "classSimpleName": "FallbackableTypeFactory",
+          "methodName": "<init>",
+          "parameterIndex": "0",
+          "elementKind": "parameter",
+          "justification": "upgrade to jackson 2.12.1"
+        },
+        {
+          "code": "java.method.exception.runtimeAdded",
+          "old": "method com.fasterxml.jackson.databind.JavaType com.fasterxml.jackson.databind.type.TypeFactory::constructSpecializedType(com.fasterxml.jackson.databind.JavaType, java.lang.Class<?>) @ org.kie.server.api.marshalling.json.FallbackableTypeFactory",
+          "new": "method com.fasterxml.jackson.databind.JavaType com.fasterxml.jackson.databind.type.TypeFactory::constructSpecializedType(com.fasterxml.jackson.databind.JavaType, java.lang.Class<?>) throws java.lang.IllegalArgumentException @ org.kie.server.api.marshalling.json.FallbackableTypeFactory",
+          "exception": "java.lang.IllegalArgumentException",
+          "package": "org.kie.server.api.marshalling.json",
+          "classSimpleName": "FallbackableTypeFactory",
+          "methodName": "constructSpecializedType",
+          "elementKind": "method",
+          "justification": "upgrade to jackson 2.12.1"
+        },
+        {
+          "code": "java.method.parameterTypeChanged",
+          "old": "parameter org.kie.server.api.marshalling.json.FallbackableTypeFactory org.kie.server.api.marshalling.json.FallbackableTypeFactory::withCache(===com.fasterxml.jackson.databind.util.LRUMap<java.lang.Object, com.fasterxml.jackson.databind.JavaType>===)",
+          "new": "parameter org.kie.server.api.marshalling.json.FallbackableTypeFactory org.kie.server.api.marshalling.json.FallbackableTypeFactory::withCache(===com.fasterxml.jackson.databind.util.LookupCache<java.lang.Object, com.fasterxml.jackson.databind.JavaType>===)",
+          "oldType": "com.fasterxml.jackson.databind.util.LRUMap<java.lang.Object, com.fasterxml.jackson.databind.JavaType>",
+          "newType": "com.fasterxml.jackson.databind.util.LookupCache<java.lang.Object, com.fasterxml.jackson.databind.JavaType>",
+          "package": "org.kie.server.api.marshalling.json",
+          "classSimpleName": "FallbackableTypeFactory",
+          "methodName": "withCache",
+          "parameterIndex": "0",
+          "elementKind": "parameter",
+          "justification": "upgrade to jackson 2.12.1"
+        }
+      ]
     }
   }
 }

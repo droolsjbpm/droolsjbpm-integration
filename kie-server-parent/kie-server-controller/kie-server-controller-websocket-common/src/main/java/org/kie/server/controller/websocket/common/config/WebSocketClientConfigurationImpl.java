@@ -17,8 +17,9 @@
 package org.kie.server.controller.websocket.common.config;
 
 import java.util.List;
-import javax.websocket.Decoder;
-import javax.websocket.Encoder;
+
+import jakarta.websocket.Decoder;
+import jakarta.websocket.Encoder;
 
 public class WebSocketClientConfigurationImpl implements WebSocketClientConfiguration {
 

@@ -9,7 +9,7 @@
   <properties>
     <!-- The version is set during the Maven build (this file is a filtered resource) -->
     <version.org.kie>${version.org.kie}</version.org.kie>
-    <version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec>${version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec}</version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec>
+    <version.jakarta.xml.bind-api>${version.jakarta.xml.bind-api}</version.jakarta.xml.bind-api>
     <version.properties.maven.plugin>1.0.0</version.properties.maven.plugin>
 
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -25,9 +25,9 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.jboss.spec.javax.xml.bind</groupId>
-        <artifactId>jboss-jaxb-api_2.3_spec</artifactId>
-        <version>${version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec}</version>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>${version.jakarta.xml.bind-api}</version>
       </dependency>
       <dependency>
         <groupId>org.drools</groupId>

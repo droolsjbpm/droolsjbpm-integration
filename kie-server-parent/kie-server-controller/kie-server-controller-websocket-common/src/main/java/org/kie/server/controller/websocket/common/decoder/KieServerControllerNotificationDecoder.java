@@ -16,10 +16,9 @@
 
 package org.kie.server.controller.websocket.common.decoder;
 
-import javax.websocket.DecodeException;
-import javax.websocket.Decoder;
-import javax.websocket.EndpointConfig;
-
+import jakarta.websocket.DecodeException;
+import jakarta.websocket.Decoder;
+import jakarta.websocket.EndpointConfig;
 import org.kie.server.controller.api.model.notification.KieServerControllerNotification;
 import org.kie.server.controller.websocket.common.WebSocketUtils;
 import org.slf4j.Logger;

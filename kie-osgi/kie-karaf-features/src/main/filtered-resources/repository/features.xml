@@ -63,7 +63,7 @@
     <bundle>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.quartz/${karaf.servicemix.version.org.quartz-scheduler}</bundle>
     <bundle>mvn:org.jboss.spec.javax.security.jacc/jboss-jacc-api_1.5_spec/${karaf.version.org.jboss.spec.javax.security.jacc}</bundle>
     <bundle>mvn:joda-time/joda-time/${karaf.version.joda-time}</bundle>
-    <bundle>mvn:org.jboss.spec.javax.interceptor/jboss-interceptors-api_1.2_spec/${karaf.version.org.jboss.spec.javax.interceptor}</bundle>
+    <bundle>mvn:jakarta.interceptor/jakarta-interceptor-api/${karaf.version.org.jboss.spec.javax.interceptor}</bundle>
     <bundle>mvn:org.apache.geronimo.specs/geronimo-jms_1.1_spec/${karaf.version.org.apache.geronimo.specs.jms}</bundle>
     <bundle>mvn:org.apache.geronimo.specs/geronimo-jpa_2.1_spec/${karaf.version.org.apache.geronimo.specs.jpa}</bundle>
     <bundle>mvn:org.apache.geronimo.specs/geronimo-jta_1.1_spec/${karaf.version.org.apache.geronimo.specs.jta}</bundle>

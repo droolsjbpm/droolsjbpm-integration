@@ -22,8 +22,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.websocket.Session;
-
+import jakarta.websocket.Session;
 import org.kie.api.command.Command;
 import org.kie.internal.process.CorrelationKey;
 import org.kie.server.api.KieServerConstants;

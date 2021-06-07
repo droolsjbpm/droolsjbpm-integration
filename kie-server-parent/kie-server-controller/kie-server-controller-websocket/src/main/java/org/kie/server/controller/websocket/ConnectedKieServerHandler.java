@@ -15,8 +15,7 @@
 
 package org.kie.server.controller.websocket;
 
-import javax.websocket.Session;
-
+import jakarta.websocket.Session;
 import org.kie.server.api.model.KieServerInfo;
 import org.kie.server.controller.api.model.KieServerSetup;
 import org.kie.server.controller.api.model.events.ServerInstanceConnected;

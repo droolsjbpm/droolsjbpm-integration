@@ -20,8 +20,16 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import javax.websocket.*;
 
+import jakarta.websocket.ClientEndpointConfig;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.DeploymentException;
+import jakarta.websocket.Endpoint;
+import jakarta.websocket.EndpointConfig;
+import jakarta.websocket.MessageHandler;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.kie.server.controller.websocket.common.auth.WebSocketAuthConfigurator;
 import org.kie.server.controller.websocket.common.config.WebSocketClientConfiguration;

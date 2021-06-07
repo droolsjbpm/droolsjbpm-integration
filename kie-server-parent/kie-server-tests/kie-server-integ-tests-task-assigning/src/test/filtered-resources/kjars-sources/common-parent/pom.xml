@@ -11,7 +11,7 @@
     <version.org.kie>${version.org.kie}</version.org.kie>
     <version.org.codehaus.jackson>${version.org.codehaus.jackson}</version.org.codehaus.jackson>
     <version.org.javassist>${version.org.javassist}</version.org.javassist>
-    <version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec>${version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec}</version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec>
+    <version.jakarta.xml.bind-api>${version.jakarta.xml.bind-api}</version.jakarta.xml.bind-api>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
 
@@ -32,9 +32,9 @@
         <version>${version.org.javassist}</version>
       </dependency>
       <dependency>
-        <groupId>org.jboss.spec.javax.xml.bind</groupId>
-        <artifactId>jboss-jaxb-api_2.3_spec</artifactId>
-        <version>${version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec}</version>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>${version.jakarta.xml.bind-api}</version>
       </dependency>
       <dependency>
         <groupId>org.drools</groupId>

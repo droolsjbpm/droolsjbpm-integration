@@ -91,6 +91,9 @@
         <include>xerces:xercesImpl</include>
 
         <include>com.sun.xml.bind:jaxb-xjc</include>
+
+        <!-- jakarta.websocket-api is currently not yet available in WildFly so it needs to be provided explicitly -->
+        <include>jakarta.websocket:jakarta.websocket-api</include>
       </includes>
       <excludes>
         <exclude>org.jboss.resteasy:*</exclude>

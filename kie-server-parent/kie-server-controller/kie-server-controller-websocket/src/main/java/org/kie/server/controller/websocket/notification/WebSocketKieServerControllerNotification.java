@@ -17,9 +17,13 @@
 package org.kie.server.controller.websocket.notification;
 
 import javax.annotation.PostConstruct;
-import javax.websocket.*;
-import javax.websocket.server.ServerEndpoint;
 
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.ServerEndpoint;
 import org.kie.server.controller.websocket.common.encoder.KieServerControllerNotificationEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

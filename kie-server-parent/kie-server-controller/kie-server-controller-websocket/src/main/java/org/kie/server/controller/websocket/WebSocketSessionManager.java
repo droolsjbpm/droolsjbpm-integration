@@ -22,10 +22,10 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
-import javax.websocket.CloseReason;
-import javax.websocket.CloseReason.CloseCodes;
-import javax.websocket.Session;
 
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.CloseReason.CloseCodes;
+import jakarta.websocket.Session;
 import org.kie.server.api.model.KieServerInfo;
 import org.kie.server.controller.websocket.common.handlers.KieServerMessageHandler;
 import org.slf4j.Logger;

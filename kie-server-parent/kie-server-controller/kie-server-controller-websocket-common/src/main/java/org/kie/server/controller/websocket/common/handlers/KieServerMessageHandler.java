@@ -18,9 +18,8 @@ package org.kie.server.controller.websocket.common.handlers;
 import java.io.IOException;
 import java.util.ArrayDeque;
 
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
-
+import jakarta.websocket.MessageHandler;
+import jakarta.websocket.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

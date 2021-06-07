@@ -46,7 +46,14 @@
       <groupId>org.kie.server</groupId>
       <artifactId>kie-server-services-common</artifactId>
     </dependency>
-
+    <dependency>
+      <groupId>org.eclipse.microprofile.openapi</groupId>
+      <artifactId>microprofile-openapi-api</artifactId>
+   </dependency>
+    <dependency>
+      <groupId>io.smallrye</groupId>
+       <artifactId>smallrye-open-api-core</artifactId>
+    </dependency>
     <dependency>
       <groupId>org.kie</groupId>
       <artifactId>kie-dmn-api</artifactId>

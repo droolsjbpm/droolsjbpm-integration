@@ -17,8 +17,8 @@
 package org.kie.server.controller.websocket.common.handlers;
 
 import java.util.function.Consumer;
-import javax.websocket.MessageHandler;
 
+import jakarta.websocket.MessageHandler;
 import org.kie.server.controller.api.model.notification.KieServerControllerNotification;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

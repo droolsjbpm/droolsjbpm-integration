@@ -9,9 +9,9 @@
   <properties>
     <!-- The version is set during the Maven build (this file is a filtered resource) -->
     <version.org.kie>${version.org.kie}</version.org.kie>
-    <version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec>${version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec}</version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec>
+    <version.jakarta.xml.bind-api>${version.jakarta.xml.bind-api}</version.jakarta.xml.bind-api>
     <version.javax.jws>${version.javax.jws}</version.javax.jws>
-    <version.org.jboss.spec.javax.xml.ws.jboss-jaxws-api_2.3_spec>${version.org.jboss.spec.javax.xml.ws.jboss-jaxws-api_2.3_spec}</version.org.jboss.spec.javax.xml.ws.jboss-jaxws-api_2.3_spec>
+    <version.jakarta.xml.ws.jakarta.xml.ws-api>${version.jakarta.xml.ws.jakarta.xml.ws-api}</version.jakarta.xml.ws.jakarta.xml.ws-api>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
 
@@ -21,9 +21,9 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.jboss.spec.javax.xml.bind</groupId>
-        <artifactId>jboss-jaxb-api_2.3_spec</artifactId>
-        <version>${version.org.jboss.spec.javax.xml.bind.jboss-jaxb-api_2.3_spec}</version>
+        <groupId>jakarta.xml.bind</groupId>
+        <artifactId>jakarta.xml.bind-api</artifactId>
+        <version>${version.jakarta.xml.bind-api}</version>
       </dependency>
       <dependency>
         <groupId>javax.jws</groupId>
@@ -31,9 +31,9 @@
         <version>${version.javax.jws}</version>
       </dependency>
       <dependency>
-        <groupId>org.jboss.spec.javax.xml.ws</groupId>
-        <artifactId>jboss-jaxws-api_2.3_spec</artifactId>
-        <version>${version.org.jboss.spec.javax.xml.ws.jboss-jaxws-api_2.3_spec}</version>
+        <groupId>jakarta.xml.ws</groupId>
+        <artifactId>jakarta.xml.ws-api</artifactId>
+        <version>${version.jakarta.xml.ws.jakarta.xml.ws-api}</version>
       </dependency>
       <dependency>
         <groupId>org.drools</groupId>

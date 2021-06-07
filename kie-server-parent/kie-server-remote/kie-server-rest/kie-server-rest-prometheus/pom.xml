@@ -55,6 +55,12 @@
     <dependency>
       <groupId>org.kie.server</groupId>
       <artifactId>kie-server-services-prometheus</artifactId>
+      <exclusions>
+        <exclusion>
+          <groupId>javax.xml.bind</groupId>
+          <artifactId>jaxb-api</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>

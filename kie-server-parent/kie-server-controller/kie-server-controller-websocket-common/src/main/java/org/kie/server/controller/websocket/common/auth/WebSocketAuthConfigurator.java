@@ -21,8 +21,8 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import javax.websocket.ClientEndpointConfig;
 
+import jakarta.websocket.ClientEndpointConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

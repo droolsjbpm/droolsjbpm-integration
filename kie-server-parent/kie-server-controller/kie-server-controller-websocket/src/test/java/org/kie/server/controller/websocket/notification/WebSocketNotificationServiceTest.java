@@ -17,13 +17,19 @@
 package org.kie.server.controller.websocket.notification;
 
 import java.util.ArrayList;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
 
+import jakarta.websocket.RemoteEndpoint;
+import jakarta.websocket.Session;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.kie.server.controller.api.model.events.*;
+import org.kie.server.controller.api.model.events.ContainerSpecUpdated;
+import org.kie.server.controller.api.model.events.ServerInstanceConnected;
+import org.kie.server.controller.api.model.events.ServerInstanceDeleted;
+import org.kie.server.controller.api.model.events.ServerInstanceDisconnected;
+import org.kie.server.controller.api.model.events.ServerInstanceUpdated;
+import org.kie.server.controller.api.model.events.ServerTemplateDeleted;
+import org.kie.server.controller.api.model.events.ServerTemplateUpdated;
 import org.kie.server.controller.api.model.notification.KieServerControllerNotification;
 import org.kie.server.controller.api.model.runtime.Container;
 import org.kie.server.controller.api.model.runtime.ServerInstance;
@@ -33,7 +39,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class WebSocketNotificationServiceTest {
