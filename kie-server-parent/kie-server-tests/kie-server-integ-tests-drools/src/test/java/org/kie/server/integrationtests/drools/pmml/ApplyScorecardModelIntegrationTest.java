@@ -57,7 +57,7 @@ public class ApplyScorecardModelIntegrationTest extends PMMLApplyModelBaseTest {
 
     private static final String CONTAINER_ID = "scorecard";
 
-    private static final long EXTENDED_TIMEOUT = 300000L;
+    private static final long EXTENDED_TIMEOUT = 900000L;
     private static ClassLoader classLoader;
 
     @BeforeClass

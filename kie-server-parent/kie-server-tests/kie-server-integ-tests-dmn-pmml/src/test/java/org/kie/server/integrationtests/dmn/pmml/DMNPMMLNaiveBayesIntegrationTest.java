@@ -45,7 +45,7 @@ public class DMNPMMLNaiveBayesIntegrationTest extends DMNPMMLKieServerBaseIntegr
     private static final String NAIVE_BAYES_MODEL_NAME = "NaiveBayesDMN";
     private static final String NAIVE_BAYES_DECISION_NAME = "Decision1";
 
-    private static final long EXTENDED_TIMEOUT = 300000L;
+    private static final long EXTENDED_TIMEOUT = 900000L;
 
     @BeforeClass
     public static void deployArtifacts() {

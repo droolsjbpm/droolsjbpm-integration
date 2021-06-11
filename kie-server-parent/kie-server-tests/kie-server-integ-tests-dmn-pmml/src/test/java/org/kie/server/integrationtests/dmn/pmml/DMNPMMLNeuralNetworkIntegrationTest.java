@@ -45,7 +45,7 @@ public class DMNPMMLNeuralNetworkIntegrationTest extends DMNPMMLKieServerBaseInt
     private static final String NEURAL_NETWORK_MODEL_NAME = "NeuralNetworkDMN";
     private static final String NEURAL_NETWORK_DECISION_NAME = "Decision1";
 
-    private static final long EXTENDED_TIMEOUT = 300000L;
+    private static final long EXTENDED_TIMEOUT = 900000L;
 
     @BeforeClass
     public static void deployArtifacts() {

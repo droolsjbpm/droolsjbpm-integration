@@ -34,7 +34,7 @@ public class ApplyScorecardMultiModuleIntegrationTest extends PMMLApplyModelBase
     private static final String CONTAINER_ID = "scorecard_mm";
     private static final String KJAR_RESOURCE_PATH = "/kjars-sources/scorecard_mm";
 
-    private static final long EXTENDED_TIMEOUT = 300000L;
+    private static final long EXTENDED_TIMEOUT = 900000L;
     private static ClassLoader classLoader;
 
     @BeforeClass

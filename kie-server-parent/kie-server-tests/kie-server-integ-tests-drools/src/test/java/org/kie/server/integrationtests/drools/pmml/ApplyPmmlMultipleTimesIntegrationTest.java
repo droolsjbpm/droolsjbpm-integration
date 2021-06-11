@@ -43,7 +43,7 @@ public class ApplyPmmlMultipleTimesIntegrationTest extends PMMLApplyModelBaseTes
 
     private static final String CONTAINER_ID = "regression";
 
-    private static final long EXTENDED_TIMEOUT = 300000L;
+    private static final long EXTENDED_TIMEOUT = 900000L;
 
     @BeforeClass
     public static void buildAndDeployArtifacts() {

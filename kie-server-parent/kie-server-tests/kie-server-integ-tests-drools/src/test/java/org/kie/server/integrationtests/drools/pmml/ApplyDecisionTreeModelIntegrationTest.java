@@ -51,7 +51,7 @@ public class ApplyDecisionTreeModelIntegrationTest extends PMMLApplyModelBaseTes
 
     private static final String CONTAINER_ID = "decision-tree";
 
-    private static final long EXTENDED_TIMEOUT = 300000L;
+    private static final long EXTENDED_TIMEOUT = 900000L;
     private static ClassLoader classLoader;
 
     @BeforeClass
