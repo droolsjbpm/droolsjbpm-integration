@@ -32,7 +32,7 @@ import org.kie.api.internal.utils.ServiceRegistry;
 
 @Singleton
 @Startup
-public class EJBCacheInitializer {
+public class EJBCacheBean {
 
     public static final String CACHE_NAME_LOOKUP = "java:jboss/infinispan/container/jbpm";
     
@@ -41,6 +41,10 @@ public class EJBCacheInitializer {
     public static final String CACHE_JOBS_NAME_LOOKUP = "java:jboss/infinispan/cache/jbpm/jobs";
     
     // this enforce the cache initializer
+    public static final String CACHE_LOCKS_NAME_LOOKUP = "java:jboss/infinispan/cache/jbpm";
+
+    @Resource(lookup = CACHE_LOCKS_NAME_LOOKUP)
+    private EmbeddedCacheManager cacheContainer;
 
     @Resource(lookup = CACHE_NAME_LOOKUP)
     private EmbeddedCacheManager cacheManager;
@@ -55,6 +59,11 @@ public class EJBCacheInitializer {
     public void init() {
         ClusterAwareService clusterService = ServiceRegistry.getService(ClusterAwareService.class);
         ((InfinispanClusterAwareService) clusterService).init(cacheManager);
+    }
+
+    
+    public EmbeddedCacheManager getCacheContainer() {
+        return cacheContainer;
     }
 
 }
