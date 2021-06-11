@@ -45,7 +45,7 @@ public class DMNPMMLKMeansIntegrationTest extends DMNPMMLKieServerBaseIntegratio
     private static final String KMEANS_MODEL_NAME = "KMeansDMN";
     private static final String KMEANS_DECISION_NAME = "Decision1";
 
-    private static final long EXTENDED_TIMEOUT = 300000L;
+    private static final long EXTENDED_TIMEOUT = 900000L;
 
     @BeforeClass
     public static void deployArtifacts() {

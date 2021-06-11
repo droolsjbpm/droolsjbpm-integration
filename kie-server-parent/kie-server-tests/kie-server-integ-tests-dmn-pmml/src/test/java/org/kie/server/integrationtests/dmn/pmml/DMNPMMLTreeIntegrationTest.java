@@ -48,7 +48,7 @@ public class DMNPMMLTreeIntegrationTest extends DMNPMMLKieServerBaseIntegrationT
     private static final String TREE_DECISION_NAME = "Decision";
     private static final String TREE_DECISION_RESULT = "decision";
 
-    private static final long EXTENDED_TIMEOUT = 300000L;
+    private static final long EXTENDED_TIMEOUT = 900000L;
 
     @BeforeClass
     public static void deployArtifacts() {

@@ -49,7 +49,7 @@ public class DMNPMMLMiningIntegrationTest extends DMNPMMLKieServerBaseIntegratio
     private static final String MINING_MODEL_NAME = "MiningModelDMN";
     private static final String MINING_DECISION_NAME = "Decision";
 
-    private static final long EXTENDED_TIMEOUT = 300000L;
+    private static final long EXTENDED_TIMEOUT = 900000L;
 
     @BeforeClass
     public static void deployArtifacts() {

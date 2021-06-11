@@ -49,7 +49,7 @@ public class DMNPMMLScorecardIntegrationTest extends DMNPMMLKieServerBaseIntegra
     private static final String SCORECARD_MODEL_NAME = "KiePMMLScoreCard";
     private static final String SCORECARD_DECISION_NAME = "my decision";
 
-    private static final long EXTENDED_TIMEOUT = 300000L;
+    private static final long EXTENDED_TIMEOUT = 900000L;
 
     @BeforeClass
     public static void deployArtifacts() {

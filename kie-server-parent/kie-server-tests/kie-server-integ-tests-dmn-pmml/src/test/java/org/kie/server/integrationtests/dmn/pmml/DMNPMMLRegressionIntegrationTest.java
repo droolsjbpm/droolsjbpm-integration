@@ -49,7 +49,7 @@ public class DMNPMMLRegressionIntegrationTest extends DMNPMMLKieServerBaseIntegr
     private static final String REGRESSION_MODEL_NAME = "TestRegressionDMN";
     private static final String REGRESSION_DECISION_NAME = "Decision";
 
-    private static final long EXTENDED_TIMEOUT = 300000L;
+    private static final long EXTENDED_TIMEOUT = 900000L;
 
     @BeforeClass
     public static void deployArtifacts() {
