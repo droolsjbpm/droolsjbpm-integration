@@ -51,6 +51,7 @@ public class KieBlueprintDependencyKarafIntegrationTest extends AbstractKarafInt
 
     @Test
     public void testKieBase() throws Exception {
+        // just to test a PR
         assertNotNull(kieSession);
         assertTrue("KieBase contains no packages?", kieSession.getKieBase().getKiePackages().size() > 0);
     }
