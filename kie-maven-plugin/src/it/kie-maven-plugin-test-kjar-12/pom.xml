@@ -17,6 +17,7 @@
   <properties>
     <generateModel>NO</generateModel>
     <generateDMNModel>NO</generateDMNModel>
+    <dumpKieSourcesFolder>..\target\outputpmml</dumpKieSourcesFolder>
   </properties>
 
   <dependencies>
@@ -37,5 +38,21 @@
       <version>@org.kie.version@</version>
     </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.kie</groupId>
+        <artifactId>kie-maven-plugin</artifactId>
+        <version>@org.kie.version@</version>
+        <extensions>true</extensions>
+        <configuration>
+          <properties>
+            <drools.dialect.java.compiler.lnglevel>1.8</drools.dialect.java.compiler.lnglevel>
+          </properties>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
 </project>
