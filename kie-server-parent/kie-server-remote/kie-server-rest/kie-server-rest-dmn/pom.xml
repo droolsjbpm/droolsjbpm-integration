@@ -76,13 +76,4 @@ Found 1 illegal transitive type dependencies in artifact 'org.kie.server:kie-ser
     </dependency> 
   </dependencies>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.revapi</groupId>
-        <artifactId>revapi-maven-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
-  
 </project>
