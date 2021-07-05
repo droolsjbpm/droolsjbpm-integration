@@ -165,10 +165,10 @@ public abstract class RestJmsSharedBaseIntegrationTest extends KieServerBaseInte
     }
 
     protected List<ExecutionErrorInstance> filterErrorsByProcessId(Collection<ExecutionErrorInstance> errors, String processId) {
-        return errors.stream().filter(error -> error.getProcessId().equals(processId)).collect(Collectors.toList());
+        return errors.stream().filter(error -> processId.equals(error.getProcessId())).collect(Collectors.toList());
     }
 
     protected List<ExecutionErrorInstance> filterErrorsByProcessInstanceId(Collection<ExecutionErrorInstance> errors, Long processInstanceId) {
-        return errors.stream().filter(error -> error.getProcessInstanceId().equals(processInstanceId)).collect(Collectors.toList());
+        return errors.stream().filter(error -> processInstanceId.equals(error.getProcessInstanceId())).collect(Collectors.toList());
     }
 }

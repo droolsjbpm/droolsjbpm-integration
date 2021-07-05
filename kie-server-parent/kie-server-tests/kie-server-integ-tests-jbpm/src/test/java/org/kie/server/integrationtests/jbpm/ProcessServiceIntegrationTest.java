@@ -208,6 +208,19 @@ public class ProcessServiceIntegrationTest extends JbpmKieServerBaseIntegrationT
         }
 
     }
+    
+    @Test
+    public void testNotUniqueCorrelationKey() {
+        CorrelationKeyFactory correlationKeyFactory = KieInternalServices.Factory.get().newCorrelationKeyFactory();
+        CorrelationKey correlationKey = correlationKeyFactory.newCorrelationKey("key");
+        Long processInstanceId = processClient.startProcess(CONTAINER_ID, PROCESS_ID_EVALUATION, correlationKey);
+        assertNotNull(processInstanceId);
+        assertClientException(
+                () -> processClient.startProcess(CONTAINER_ID, PROCESS_ID_EVALUATION, correlationKey),
+                500,
+                "already exists");
+        processClient.abortProcessInstance(CONTAINER_ID, processInstanceId);
+    }
 
     @Test
     public void testAbortMultipleProcessInstances() throws Exception {
