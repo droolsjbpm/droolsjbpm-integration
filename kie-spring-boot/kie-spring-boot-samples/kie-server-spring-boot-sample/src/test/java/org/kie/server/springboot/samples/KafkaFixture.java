@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +82,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.kie.api.runtime.process.ProcessInstance.STATE_ACTIVE;
 
-public abstract class KafkaFixture {
+public class KafkaFixture {
 
     protected static final String GROUP_ID = "org.kie.server.testing";
     protected static final String VERSION = "1.0.0.Final";
@@ -140,6 +141,10 @@ public abstract class KafkaFixture {
 
     protected static final String PATH = "src/test/resources/kjars/";
     
+    protected static final String TEMPLATE_FILE = "src/test/resources/template/kie-deployment-descriptor.template";
+    protected static final String DEPLOYMENT_DESCRIPTOR_FILE_NAME = "/src/main/resources/META-INF/kie-deployment-descriptor.xml";
+    protected static final String STRATEGY_TEMPLATE = "STRATEGY_TEMPLATE";
+    
     protected static final String VARIABLES = "variables";
     protected static final String JOHN = "john";
     
@@ -147,6 +152,8 @@ public abstract class KafkaFixture {
     
     protected static String bootstrapServers;
     protected static Properties props = new Properties();
+    
+    private String templateFile = TEMPLATE_FILE;
     
     public static void generalSetup() {
         // Currently, Docker is needed for testcontainers
@@ -187,11 +194,17 @@ public abstract class KafkaFixture {
         }
     }
     
-    public KModuleDeploymentUnit setup(DeploymentService ds, String artifactId) {
+    public KModuleDeploymentUnit setup(DeploymentService ds, String artifactId, String strategy) {
         System.setProperty(SIGNAL_MAPPING_PROPERTY, AUTO);
+        
+        Map<String, String> map = new HashMap<>();
+        map.put(STRATEGY_TEMPLATE, strategy);
+        
+        KieJarBuildHelper.replaceInFile(templateFile, PATH+artifactId+DEPLOYMENT_DESCRIPTOR_FILE_NAME, map);
         
         KieJarBuildHelper.createKieJar(PATH + artifactId);
         KModuleDeploymentUnit unit = new KModuleDeploymentUnit(GROUP_ID, artifactId, VERSION);
+        
         ds.deploy(unit);
         return unit;
     }

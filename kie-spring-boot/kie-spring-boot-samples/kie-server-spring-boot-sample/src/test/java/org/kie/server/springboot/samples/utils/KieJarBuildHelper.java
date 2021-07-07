@@ -21,8 +21,16 @@ import static org.kie.scanner.KieMavenRepository.getKieMavenRepository;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.appformer.maven.integration.MavenRepository;
 import org.drools.compiler.kie.builder.impl.InternalKieModule;
 import org.kie.api.KieServices;
@@ -32,7 +40,6 @@ import org.kie.scanner.KieMavenRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.io.Files;
 
 public class KieJarBuildHelper {
     
@@ -55,7 +62,7 @@ public class KieJarBuildHelper {
         String pomFileName = MavenRepository.toFileName(kjar.getReleaseId(), null) + ".pom";
         File pomFile = new File(System.getProperty("java.io.tmpdir"), pomFileName);
         try (FileOutputStream fos = new FileOutputStream(pomFile)) {
-            fos.write(Files.toByteArray(new File(resource + "/pom.xml")));
+            fos.write(Files.readAllBytes((new File(resource + "/pom.xml")).toPath()));
             fos.flush();
         } catch (IOException ioe) {
             throw new RuntimeException("Unable to write pom.xml to temporary file : " + ioe.getMessage(), ioe);
@@ -63,5 +70,22 @@ public class KieJarBuildHelper {
     
         KieMavenRepository repository = getKieMavenRepository();
         repository.installArtifact(kjar.getReleaseId(), kjar, pomFile);
+    }
+    
+    public static void replaceInFile(String targetFile, String replacedFile, Map<String,String> map) {
+        Set<String> keys = map.keySet();
+        String[] patterns = keys.toArray(new String[keys.size()]);
+        Collection<String> values = map.values();
+        String[] replacements = values.toArray(new String[0]);
+        
+        try (Stream<String> lines = Files.lines(Paths.get(targetFile))) {
+            List<String> replaced = lines.map(line-> StringUtils.replaceEach(line, patterns, replacements))
+                                     .collect(Collectors.toList());
+            Files.write(Paths.get(replacedFile), replaced);
+            Paths.get(replacedFile).toFile().deleteOnExit();
+         } catch (IOException ioe) {
+             throw new RuntimeException("Unable to replace "+map+
+                     " at file "+targetFile+" : " + ioe.getMessage(), ioe);
+        }
     }
 }

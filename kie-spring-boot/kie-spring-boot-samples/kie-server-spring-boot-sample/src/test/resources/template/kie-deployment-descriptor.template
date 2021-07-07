@@ -4,9 +4,15 @@
     <audit-persistence-unit>org.jbpm.domain</audit-persistence-unit>
     <audit-mode>JPA</audit-mode>
     <persistence-mode>JPA</persistence-mode>
-    <runtime-strategy>PER_PROCESS_INSTANCE</runtime-strategy>
+    <runtime-strategy>STRATEGY_TEMPLATE</runtime-strategy>
     <marshalling-strategies/>
-    <event-listeners/>
+    <event-listeners>
+        <event-listener>
+            <resolver>mvel</resolver>
+            <identifier>new org.kie.server.springboot.samples.listeners.CustomEventListener()</identifier>
+            <parameters/>
+        </event-listener>
+    </event-listeners>
     <task-event-listeners/>
     <globals/>
     <work-item-handlers/>
