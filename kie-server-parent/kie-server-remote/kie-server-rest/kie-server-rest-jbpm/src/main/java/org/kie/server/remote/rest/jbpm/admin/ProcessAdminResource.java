@@ -42,6 +42,7 @@ import io.swagger.annotations.ApiResponses;
 import io.swagger.annotations.Example;
 import io.swagger.annotations.ExampleProperty;
 import org.jbpm.services.api.DeploymentNotFoundException;
+import org.jbpm.services.api.IncorrectDeploymentIDException;
 import org.jbpm.services.api.NodeInstanceNotFoundException;
 import org.jbpm.services.api.NodeNotFoundException;
 import org.jbpm.services.api.ProcessInstanceNotFoundException;
@@ -77,6 +78,7 @@ import static org.kie.server.api.rest.RestURI.RETRIGGER_NODE_INST_PROCESS_INST_P
 import static org.kie.server.api.rest.RestURI.TIMERS_PROCESS_INST_GET_URI;
 import static org.kie.server.api.rest.RestURI.TRIGGER_NODE_PROCESS_INST_POST_URI;
 import static org.kie.server.api.rest.RestURI.UPDATE_TIMER_PROCESS_INST_PUT_URI;
+import static org.kie.server.remote.rest.common.util.RestUtils.badRequest;
 import static org.kie.server.remote.rest.common.util.RestUtils.buildConversationIdHeader;
 import static org.kie.server.remote.rest.common.util.RestUtils.createCorrectVariant;
 import static org.kie.server.remote.rest.common.util.RestUtils.createResponse;
@@ -102,6 +104,7 @@ import static org.kie.server.remote.rest.jbpm.docs.ParameterSamples.TIMER_VAR_MA
 import static org.kie.server.remote.rest.jbpm.docs.ParameterSamples.TIMER_VAR_MAP_XML;
 import static org.kie.server.remote.rest.jbpm.docs.ParameterSamples.XML;
 import static org.kie.server.remote.rest.jbpm.resources.Messages.CONTAINER_NOT_FOUND;
+import static org.kie.server.remote.rest.jbpm.resources.Messages.INCORRECT_CONTAINER_ID;
 import static org.kie.server.remote.rest.jbpm.resources.Messages.NODE_INSTANCE_NOT_FOUND;
 import static org.kie.server.remote.rest.jbpm.resources.Messages.NODE_NOT_FOUND;
 import static org.kie.server.remote.rest.jbpm.resources.Messages.PROCESS_INSTANCE_NOT_FOUND;
@@ -268,6 +271,9 @@ public class ProcessAdminResource {
         } catch (DeploymentNotFoundException e) {
             return notFound(
                     MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v, conversationIdHeader);
+        } catch (IncorrectDeploymentIDException e) {
+            return badRequest(
+                    MessageFormat.format(INCORRECT_CONTAINER_ID, processInstanceId, containerId), v, conversationIdHeader);
         } catch (Exception e) {
             logger.error("Unexpected error during processing {}", e.getMessage(), e);
             return internalServerError(errorMessage(e), v, conversationIdHeader);
@@ -301,6 +307,9 @@ public class ProcessAdminResource {
         } catch (DeploymentNotFoundException e) {
             return notFound(
                     MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v, conversationIdHeader);
+        } catch (IncorrectDeploymentIDException e) {
+            return badRequest(
+                    MessageFormat.format(INCORRECT_CONTAINER_ID, processInstanceId, containerId), v, conversationIdHeader);
         } catch (Exception e) {
             logger.error("Unexpected error during processing {}", e.getMessage(), e);
             return internalServerError(errorMessage(e), v, conversationIdHeader);
@@ -340,6 +349,9 @@ public class ProcessAdminResource {
         } catch (DeploymentNotFoundException e) {
             return notFound(
                     MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v, conversationIdHeader);
+        } catch (IncorrectDeploymentIDException e) {
+            return badRequest(
+                    MessageFormat.format(INCORRECT_CONTAINER_ID, processInstanceId, containerId), v, conversationIdHeader);
         } catch (Exception e) {
             logger.error("Unexpected error during processing {}", e.getMessage(), e);
             return internalServerError(errorMessage(e), v, conversationIdHeader);
@@ -373,6 +385,9 @@ public class ProcessAdminResource {
         } catch (DeploymentNotFoundException e) {
             return notFound(
                     MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v, conversationIdHeader);
+        } catch (IncorrectDeploymentIDException e) {
+            return badRequest(
+                    MessageFormat.format(INCORRECT_CONTAINER_ID, processInstanceId, containerId), v, conversationIdHeader);
         } catch (Exception e) {
             logger.error("Unexpected error during processing {}", e.getMessage(), e);
             return internalServerError(errorMessage(e), v, conversationIdHeader);
@@ -403,6 +418,9 @@ public class ProcessAdminResource {
         } catch (DeploymentNotFoundException e) {
             return notFound(
                     MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v, conversationIdHeader);
+        } catch (IncorrectDeploymentIDException e) {
+            return badRequest(
+                    MessageFormat.format(INCORRECT_CONTAINER_ID, processInstanceId, containerId), v, conversationIdHeader);
         } catch (Exception e) {
             logger.error("Unexpected error during processing {}", e.getMessage(), e);
             return internalServerError(errorMessage(e), v, conversationIdHeader);
@@ -432,6 +450,9 @@ public class ProcessAdminResource {
         } catch (DeploymentNotFoundException e) {
             return notFound(
                     MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v, conversationIdHeader);
+        } catch (IncorrectDeploymentIDException e) {
+            return badRequest(
+                    MessageFormat.format(INCORRECT_CONTAINER_ID, processInstanceId, containerId), v, conversationIdHeader);
         } catch (Exception e) {
             logger.error("Unexpected error during processing {}", e.getMessage(), e);
             return internalServerError(errorMessage(e), v, conversationIdHeader);
@@ -461,6 +482,9 @@ public class ProcessAdminResource {
         } catch (DeploymentNotFoundException e) {
             return notFound(
                     MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v, conversationIdHeader);
+        } catch (IncorrectDeploymentIDException e) {
+            return badRequest(
+                    MessageFormat.format(INCORRECT_CONTAINER_ID, processInstanceId, containerId), v, conversationIdHeader);
         } catch (Exception e) {
             logger.error("Unexpected error during processing {}", e.getMessage(), e);
             return internalServerError(errorMessage(e), v, conversationIdHeader);
@@ -479,6 +503,9 @@ public class ProcessAdminResource {
             @ApiParam(value = "identifier of error to be acknowledged", required = true, example = "xxx-yyy-zzz") @PathParam("errorId") String errorId) {
         Variant v = getVariant(headers);
         Header conversationIdHeader = buildConversationIdHeader(containerId, context, headers);
+        if(conversationIdHeader == null) {
+        	return notFound(MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v);
+        }
         try {
 
             processAdminServiceBase.acknowledgeError(containerId, Arrays.asList(errorId));
@@ -505,6 +532,9 @@ public class ProcessAdminResource {
             @ApiParam(value = "list of error identifiers to be acknowledged", required = true, example = "xxx-yyy-zzz") @QueryParam("errorId") List<String> errorIds) {
         Variant v = getVariant(headers);
         Header conversationIdHeader = buildConversationIdHeader(containerId, context, headers);
+        if(conversationIdHeader == null) {
+        	return notFound(MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v);
+        }
         try {
 
             processAdminServiceBase.acknowledgeError(containerId, errorIds);
@@ -532,6 +562,9 @@ public class ProcessAdminResource {
             @ApiParam(value = "identifier of error to be loaded", required = true, example = "xxx-yyy-zzz") @PathParam("errorId") String errorId) {
         Variant v = getVariant(headers);
         Header conversationIdHeader = buildConversationIdHeader(containerId, context, headers);
+        if(conversationIdHeader == null) {
+        	return notFound(MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v);
+        }
         try {
             ExecutionErrorInstance executionErrorInstance = processAdminServiceBase.getError(containerId, errorId);
 
@@ -576,6 +609,12 @@ public class ProcessAdminResource {
         } catch (DeploymentNotFoundException e) {
             return notFound(
                     MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v, conversationIdHeader);
+        } catch (IncorrectDeploymentIDException e) {
+            return badRequest(
+                    MessageFormat.format(INCORRECT_CONTAINER_ID, processInstanceId, containerId), v, conversationIdHeader);
+        } catch (ProcessInstanceNotFoundException e) {
+            return notFound(
+                    MessageFormat.format(PROCESS_INSTANCE_NOT_FOUND, processInstanceId), v, conversationIdHeader);
         } catch (Exception e) {
             logger.error("Unexpected error during processing {}", e.getMessage(), e);
             return internalServerError(errorMessage(e), v, conversationIdHeader);
@@ -599,6 +638,9 @@ public class ProcessAdminResource {
             @ApiParam(value = "optional sort direction (asc, desc) - defaults to asc", required = false) @QueryParam("sortOrder") @DefaultValue("true") boolean sortOrder) {
         Variant v = getVariant(headers);
         Header conversationIdHeader = buildConversationIdHeader(containerId, context, headers);
+        if(conversationIdHeader == null) {
+        	return notFound(MessageFormat.format(CONTAINER_NOT_FOUND, containerId), v);
+        }
         try {
             ExecutionErrorInstanceList executionErrorInstanceList = processAdminServiceBase.getExecutionErrors(containerId, includeAcknowledged, page, pageSize, sort, sortOrder);
 

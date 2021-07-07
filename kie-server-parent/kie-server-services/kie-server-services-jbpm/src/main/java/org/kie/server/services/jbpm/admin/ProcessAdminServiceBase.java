@@ -45,6 +45,7 @@ import org.kie.server.api.model.admin.ProcessNodeList;
 import org.kie.server.api.model.admin.TimerInstanceList;
 import org.kie.server.api.model.instance.NodeInstanceList;
 import org.kie.server.services.api.KieServerRegistry;
+import org.kie.server.services.impl.locator.ContainerLocatorProvider;
 import org.kie.server.services.impl.marshal.MarshallerHelper;
 import org.kie.server.services.jbpm.ConvertUtils;
 import org.slf4j.Logger;
@@ -143,8 +144,9 @@ public class ProcessAdminServiceBase {
 
     public ProcessNodeList getProcessNodes(String containerId, Number processInstanceId) {
         logger.debug("About to get process nodes for process instance {} in container {}", processInstanceId, containerId);
+        containerId = context.getContainerId(containerId, ContainerLocatorProvider.get().getLocator());
 
-        Collection<ProcessNode> processNodes = processInstanceAdminService.getProcessNodes(processInstanceId.longValue());
+        Collection<ProcessNode> processNodes = processInstanceAdminService.getProcessNodes(containerId, processInstanceId.longValue());
         logger.debug("Found process nodes {} for process instance {}", processNodes, processInstanceId);
 
         ProcessNodeList processNodeList = convertProcessNodes(processNodes);
@@ -152,40 +154,42 @@ public class ProcessAdminServiceBase {
     }
 
     public void cancelNodeInstance(String containerId, Number processInstanceId, Number nodeInstanceId) {
-
         logger.debug("About to cancel node instance {} in process instance {}", nodeInstanceId, processInstanceId);
-
-        processInstanceAdminService.cancelNodeInstance(processInstanceId.longValue(), nodeInstanceId.longValue());
+        
+        containerId = context.getContainerId(containerId, ContainerLocatorProvider.get().getLocator());
+        processInstanceAdminService.cancelNodeInstance(containerId, processInstanceId.longValue(), nodeInstanceId.longValue());
         logger.debug("Node instance {} canceled successfully", nodeInstanceId);
     }
 
     public void retriggerNodeInstance(String containerId, Number processInstanceId, Number nodeInstanceId) {
-
         logger.debug("About to retrigger node instance {} in process instance {}", nodeInstanceId, processInstanceId);
 
-        processInstanceAdminService.retriggerNodeInstance(processInstanceId.longValue(), nodeInstanceId.longValue());
+        containerId = context.getContainerId(containerId, ContainerLocatorProvider.get().getLocator());
+        processInstanceAdminService.retriggerNodeInstance(containerId, processInstanceId.longValue(), nodeInstanceId.longValue());
         logger.debug("Node instance {} retriggered successfully", nodeInstanceId);
     }
 
     public NodeInstanceList getActiveNodeInstances(String containerId, Number processInstanceId) {
         logger.debug("About to get active node instance for process instance {} in container {}", processInstanceId, containerId);
-        Collection<NodeInstanceDesc> activeNodeInstances = processInstanceAdminService.getActiveNodeInstances(processInstanceId.longValue());
+       
+        containerId = context.getContainerId(containerId, ContainerLocatorProvider.get().getLocator());
+        Collection<NodeInstanceDesc> activeNodeInstances = processInstanceAdminService.getActiveNodeInstances(containerId, processInstanceId.longValue());
         logger.debug("Found active node instance {} in process instance {}", activeNodeInstances, processInstanceId);
 
         return ConvertUtils.convertToNodeInstanceList(activeNodeInstances);
     }
 
     public void triggerNode(String containerId, Number processInstanceId, Number nodeId) {
-
         logger.debug("About to trigger (create) node {} in process instance {}", nodeId, processInstanceId);
 
-        processInstanceAdminService.triggerNode(processInstanceId.longValue(), nodeId.longValue());
+        containerId = context.getContainerId(containerId, ContainerLocatorProvider.get().getLocator());
+        processInstanceAdminService.triggerNode(containerId, processInstanceId.longValue(), nodeId.longValue());
         logger.debug("Node {} triggered successfully", nodeId);
     }
 
     public void updateTimer(String containerId, Number processInstanceId, Number timerId, boolean relative, String payload, String marshallingType) {
-
         logger.debug("About to unmarshal timer update details from payload: '{}' using container {} marshaller", payload, containerId);
+        containerId = context.getContainerId(containerId, ContainerLocatorProvider.get().getLocator());
         Map<String, Number> timerUpdates = marshallerHelper.unmarshal(containerId, payload, marshallingType, Map.class);
 
         Number delay = timerUpdates.getOrDefault("delay", 0);
@@ -196,18 +200,20 @@ public class ProcessAdminServiceBase {
 
             logger.debug("Timer {} in process instance is going to be updated relatively to current time with values: delay {}, period {}, repeat limit {}",
                     timerId, processInstanceId, delay, period, repeatLimit);
-            processInstanceAdminService.updateTimerRelative(processInstanceId.longValue(), timerId.longValue(), delay.longValue(), period.longValue(), repeatLimit.intValue());
+            processInstanceAdminService.updateTimerRelative(containerId, processInstanceId.longValue(), timerId.longValue(), delay.longValue(), period.longValue(), repeatLimit.intValue());
         } else {
             logger.debug("Timer {} in process instance is going to be updated with values: delay {}, period {}, repeat limit {}",
                     timerId, processInstanceId, delay, period, repeatLimit);
-            processInstanceAdminService.updateTimer(processInstanceId.longValue(), timerId.longValue(), delay.longValue(), period.longValue(), repeatLimit.intValue());
+            processInstanceAdminService.updateTimer(containerId, processInstanceId.longValue(), timerId.longValue(), delay.longValue(), period.longValue(), repeatLimit.intValue());
         }
         logger.debug("Timer {} triggered successfully in process instance", timerId, processInstanceId);
     }
 
     public TimerInstanceList getTimerInstances(String containerId, Number processInstanceId) {
         logger.debug("About to get timers for process instance {} in container {}", processInstanceId, containerId);
-        Collection<TimerInstance> timerInstances = processInstanceAdminService.getTimerInstances(processInstanceId.longValue());
+        
+        containerId = context.getContainerId(containerId, ContainerLocatorProvider.get().getLocator());        
+        Collection<TimerInstance> timerInstances = processInstanceAdminService.getTimerInstances(containerId, processInstanceId.longValue());
 
         logger.debug("Found timers {} in process instance {}", timerInstances, processInstanceId);
         TimerInstanceList timerInstanceList = convertTimerInstances(timerInstances);
@@ -217,6 +223,8 @@ public class ProcessAdminServiceBase {
 
     public ExecutionErrorInstanceList getExecutionErrors(String containerId, boolean includeAcknowledged, Integer page, Integer pageSize, String sort, boolean sortOrder) {
         logger.debug("About to get execution errors");
+        
+        containerId = context.getContainerId(containerId, ContainerLocatorProvider.get().getLocator());
         List<ExecutionError> errors = processInstanceAdminService.getErrorsByDeploymentId(containerId, includeAcknowledged, buildQueryContext(page, pageSize, sort, sortOrder));
 
         logger.debug("Found errors {}", errors);
@@ -226,11 +234,13 @@ public class ProcessAdminServiceBase {
 
     public ExecutionErrorInstanceList getExecutionErrorsByProcessInstance(String containerId, Number processInstanceId, String nodeName, boolean includeAcknowledged, Integer page, Integer pageSize, String sort, boolean sortOrder) {
         logger.debug("About to get execution errors for process instance id {} and node {}", processInstanceId, nodeName);
+        
+        containerId = context.getContainerId(containerId, ContainerLocatorProvider.get().getLocator());
         List<ExecutionError> errors = null;
         if (nodeName == null || nodeName.isEmpty()) {
-            errors = processInstanceAdminService.getErrorsByProcessInstanceId(processInstanceId.longValue(), includeAcknowledged, buildQueryContext(page, pageSize, sort, sortOrder));;
+            errors = processInstanceAdminService.getErrorsByProcessInstanceId(containerId, processInstanceId.longValue(), includeAcknowledged, buildQueryContext(page, pageSize, sort, sortOrder));;
         } else {
-            errors = processInstanceAdminService.getErrorsByProcessInstanceId(processInstanceId.longValue(), nodeName, includeAcknowledged, buildQueryContext(page, pageSize, sort, sortOrder));
+            errors = processInstanceAdminService.getErrorsByProcessInstanceId(containerId, processInstanceId.longValue(), nodeName, includeAcknowledged, buildQueryContext(page, pageSize, sort, sortOrder));
         }
 
         logger.debug("Found errors {}", errors);
