@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.type.TypeParser;
 import com.fasterxml.jackson.databind.util.ArrayBuilders;
 import com.fasterxml.jackson.databind.util.ClassUtil;
 import com.fasterxml.jackson.databind.util.LRUMap;
+import com.fasterxml.jackson.databind.util.LookupCache;
 
 public class FallbackableTypeFactory extends TypeFactory {
 
@@ -48,9 +49,9 @@ public class FallbackableTypeFactory extends TypeFactory {
         this.fallbackClassLoader = null;
     }
 
-    protected FallbackableTypeFactory(LRUMap<Object, JavaType> typeCache, TypeParser p,
+    protected FallbackableTypeFactory(LookupCache<Object, JavaType> _typeCache, TypeParser p,
                                       TypeModifier[] mods, ClassLoader classLoader, ClassLoader fallbackClassLoader) {
-        super(typeCache, p, mods, classLoader);
+        super(_typeCache, p, mods, classLoader);
         this.fallbackClassLoader = fallbackClassLoader;
     }
 
@@ -69,7 +70,7 @@ public class FallbackableTypeFactory extends TypeFactory {
      */
     @Override
     public FallbackableTypeFactory withModifier(TypeModifier mod) {
-        LRUMap<Object, JavaType> typeCache = _typeCache;
+        LookupCache<Object, JavaType> typeCache = _typeCache;
         TypeModifier[] mods;
         if (mod == null) { // mostly for unit tests
             mods = null;
