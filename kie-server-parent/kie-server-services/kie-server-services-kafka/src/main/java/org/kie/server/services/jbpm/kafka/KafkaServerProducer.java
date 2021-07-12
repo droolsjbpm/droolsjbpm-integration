@@ -21,23 +21,36 @@ import java.util.function.Supplier;
 
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.jbpm.services.api.DeploymentEvent;
-import org.kie.api.event.process.DefaultProcessEventListener;
-import org.kie.api.event.process.MessageEvent;
-import org.kie.api.event.process.SignalEvent;
 import org.kie.api.runtime.process.ProcessInstance;
-import org.kie.internal.runtime.manager.InternalRegisterableItemsFactory;
-import org.kie.internal.runtime.manager.InternalRuntimeManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.kie.server.services.jbpm.kafka.KafkaServerUtils.processMessages;
-import static org.kie.server.services.jbpm.kafka.KafkaServerUtils.processSignals;
 import static org.kie.server.services.jbpm.kafka.KafkaServerUtils.topicFromSignal;
 
-class KafkaServerProducer extends DefaultProcessEventListener {
+class KafkaServerProducer {
 
     private static final Logger logger = LoggerFactory.getLogger(KafkaServerProducer.class);
+    private static KafkaServerProducer instance;
+
+    public static void init(KafkaEventProcessorFactory factory,
+                            Supplier<Producer<String, byte[]>> producerSupplier) {
+        instance = new KafkaServerProducer(factory, producerSupplier);
+    }
+
+    public static void cleanup(Duration duration) {
+        if (instance != null) {
+            instance.close(duration);
+            instance = null;
+        }
+    }
+
+    public static void publish(ProcessInstance processInstance,
+                               String name,
+                               Object value) {
+        if (instance != null) {
+            instance.sendEvent(processInstance, name, value);
+        }
+    }
 
     // Kafka producer
     private Producer<String, byte[]> producer;
@@ -46,13 +59,13 @@ class KafkaServerProducer extends DefaultProcessEventListener {
 
     private Lock producerLock = new ReentrantLock();
 
-    public KafkaServerProducer(KafkaEventProcessorFactory factory,
-                               Supplier<Producer<String, byte[]>> producerSupplier) {
+    private KafkaServerProducer(KafkaEventProcessorFactory factory,
+                                Supplier<Producer<String, byte[]>> producerSupplier) {
         this.factory = factory;
         this.producerSupplier = producerSupplier;
     }
 
-    void close(Duration duration) {
+    private void close(Duration duration) {
         producerLock.lock();
         try {
             if (producer != null) {
@@ -64,20 +77,6 @@ class KafkaServerProducer extends DefaultProcessEventListener {
         }
     }
 
-    @Override
-    public void onMessage(MessageEvent event) {
-        if (processMessages()) {
-            sendEvent(event.getProcessInstance(), event.getMessageName(), event.getMessage());
-        }
-    }
-
-    @Override
-    public void onSignal(SignalEvent event) {
-        if (processSignals(event)) {
-            sendEvent(event.getProcessInstance(), event.getSignalName(), event.getSignal());
-        }
-    }
-
     private void sendEvent(ProcessInstance processInstance,
                            String name,
                            Object value) {
@@ -86,12 +85,12 @@ class KafkaServerProducer extends DefaultProcessEventListener {
             if (producer == null) {
                 producer = producerSupplier.get();
             }
-        }
-         finally {
-             producerLock.unlock();
+        } finally {
+            producerLock.unlock();
         }
         try {
             String topic = topicFromSignal(name);
+            logger.debug("Publishing event {}  to topic {}", value, topic);
             producer.send(new ProducerRecord<>(topic, factory.getEventWriter(topic)
                     .writeEvent(processInstance, value)),
                     (m, e) -> {
@@ -106,14 +105,5 @@ class KafkaServerProducer extends DefaultProcessEventListener {
 
     private void logError(Object value, Exception e) {
         logger.error("Error publishing event {}", value, e);
-    }
-
-    public void activate(DeploymentEvent event) {
-        ((InternalRegisterableItemsFactory) ((InternalRuntimeManager) event.getDeployedUnit().getRuntimeManager())
-                .getEnvironment().getRegisterableItemsFactory()).addProcessListener(this);
-    }
-
-    public void deactivate(DeploymentEvent event) {
-        // when deployment is deactivated, the listener is gone too
     }
 }

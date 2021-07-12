@@ -56,20 +56,17 @@ public class KafkaServerExtension implements KieServerExtension, DeploymentEvent
     private static final Logger logger = LoggerFactory.getLogger(KafkaServerExtension.class);
 
     public static final String EXTENSION_NAME = "Kafka";
-    private static final String DEFAULT_HOST= "localhost:9092";
+    private static final String DEFAULT_HOST = "localhost:9092";
 
     private KafkaServerConsumer kafkaServerConsumer;
-    private KafkaServerProducer kafkaServerProducer;
     private KafkaEventProcessorFactory factory;
-
 
     private AtomicBoolean initialized = new AtomicBoolean();
     // JBPM services
     private ListenerSupport deploymentService;
-    
-    private Map<String,Object> consumerProperties = new HashMap<>();
-    private Map<String,Object> producerProperties = new HashMap<>();
 
+    private Map<String, Object> consumerProperties = new HashMap<>();
+    private Map<String, Object> producerProperties = new HashMap<>();
 
     @Override
     public boolean isInitialized() {
@@ -89,10 +86,12 @@ public class KafkaServerExtension implements KieServerExtension, DeploymentEvent
         }
 
         initProperties();
+        factory = buildEventProcessorFactory();
+        KafkaServerProducer.init(factory, this::getKafkaProducer);
 
         DeploymentDescriptorManager.addDescriptorLocation(
                 "classpath:/META-INF/kafka-deployment-descriptor-defaults.xml");
-        
+
         KieServerExtension jbpmExt = registry.getServerExtension(JbpmKieServerExtension.EXTENSION_NAME);
         if (jbpmExt == null) {
             logger.warn("Extension " + JbpmKieServerExtension.EXTENSION_NAME + " is required");
@@ -115,9 +114,7 @@ public class KafkaServerExtension implements KieServerExtension, DeploymentEvent
         if (processService == null) {
             throw new IllegalStateException("Cannot find process service");
         }
-        factory = buildEventProcessorFactory();
         kafkaServerConsumer = new KafkaServerConsumer(factory, this::getKafkaConsumer, processService);
-        kafkaServerProducer = new KafkaServerProducer(factory, this::getKafkaProducer);
         deploymentService.addListener(this);
         initialized.set(true);
     }
@@ -130,8 +127,7 @@ public class KafkaServerExtension implements KieServerExtension, DeploymentEvent
         Duration duration = Duration.ofSeconds(Long.getLong(KAFKA_EXTENSION_PREFIX + "close.timeout", 30L));
         kafkaServerConsumer.close(duration);
         kafkaServerConsumer = null;
-        kafkaServerProducer.close(duration);
-        kafkaServerProducer = null;
+        KafkaServerProducer.cleanup(duration);
         factory.close();
         factory = null;
         deploymentService = null;
@@ -143,7 +139,8 @@ public class KafkaServerExtension implements KieServerExtension, DeploymentEvent
     protected Consumer<String, byte[]> getKafkaConsumer() {
         consumerProperties.putIfAbsent(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, DEFAULT_HOST);
         // read only committed events
-        consumerProperties.putIfAbsent(ConsumerConfig.ISOLATION_LEVEL_CONFIG, IsolationLevel.READ_COMMITTED.toString().toLowerCase());
+        consumerProperties.putIfAbsent(ConsumerConfig.ISOLATION_LEVEL_CONFIG, IsolationLevel.READ_COMMITTED.toString()
+                .toLowerCase());
         consumerProperties.putIfAbsent(ConsumerConfig.GROUP_ID_CONFIG, "jbpm-consumer");
         return new KafkaConsumer<>(consumerProperties, new StringDeserializer(), new ByteArrayDeserializer());
     }
@@ -156,13 +153,11 @@ public class KafkaServerExtension implements KieServerExtension, DeploymentEvent
 
     @Override
     public void onDeploy(DeploymentEvent event) {
-        kafkaServerProducer.activate(event);
         kafkaServerConsumer.addRegistration(event);
     }
 
     @Override
     public void onUnDeploy(DeploymentEvent event) {
-        kafkaServerProducer.deactivate(event);
         kafkaServerConsumer.removeRegistration(event);
     }
 
@@ -244,7 +239,7 @@ public class KafkaServerExtension implements KieServerExtension, DeploymentEvent
     public <T> T getAppComponents(Class<T> serviceType) {
         return null;
     }
-    
+
     protected final Map<String, Object> getConsumerProperties() {
         return Collections.unmodifiableMap(consumerProperties);
     }

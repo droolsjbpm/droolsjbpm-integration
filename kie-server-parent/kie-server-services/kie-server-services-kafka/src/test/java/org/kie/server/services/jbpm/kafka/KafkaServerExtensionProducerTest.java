@@ -26,26 +26,19 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.drools.core.event.MessageEventImpl;
 import org.drools.core.event.SignalEventImpl;
-import org.jbpm.kie.services.impl.KModuleDeploymentUnit;
 import org.jbpm.runtime.manager.impl.SimpleRegisterableItemsFactory;
-import org.jbpm.services.api.DeploymentEvent;
 import org.jbpm.services.api.DeploymentService;
 import org.jbpm.services.api.ListenerSupport;
 import org.jbpm.services.api.ProcessService;
-import org.jbpm.services.api.model.DeployedUnit;
-import org.jbpm.services.api.model.ProcessDefinition;
 import org.jbpm.workflow.core.Node;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieRuntime;
 import org.kie.api.runtime.manager.RuntimeEngine;
 import org.kie.api.runtime.process.NodeInstance;
 import org.kie.api.runtime.process.ProcessInstance;
 import org.kie.internal.runtime.manager.InternalRegisterableItemsFactory;
-import org.kie.internal.runtime.manager.InternalRuntimeManager;
-import org.kie.internal.runtime.manager.RuntimeEnvironment;
 import org.kie.server.services.api.KieServerExtension;
 import org.kie.server.services.api.KieServerRegistry;
 import org.kie.server.services.impl.KieServerImpl;
@@ -81,8 +74,6 @@ public class KafkaServerExtensionProducerTest {
     private MockKafkaServerExtension extension;
     private KieServerImpl server;
     private KieServerRegistry registry;
-    private DeployedUnit deployedUnit;
-    private ProcessDefinition processDefinition;
     private MockProducer<String, byte[]> mockProducer;
     private ProcessInstance pInstance;
     private KieRuntime runtime;
@@ -96,6 +87,7 @@ public class KafkaServerExtensionProducerTest {
     public void setup() {
         System.setProperty(SIGNAL_MAPPING_PROPERTY, Mapping.AUTO.toString());
         itemsFactory = new SimpleRegisterableItemsFactory();
+        itemsFactory.addProcessListener(new KafkaServerProcessListener());
         mockProducer = new MockProducer<>();
         extension = new MockKafkaServerExtension(mockProducer);
         server = mock(KieServerImpl.class);
@@ -106,14 +98,6 @@ public class KafkaServerExtensionProducerTest {
                 DeploymentService.class));
         processService = mock(ProcessService.class);
         when(serverExtension.getServices()).thenReturn(Arrays.asList(deployService, processService));
-        deployedUnit = mock(DeployedUnit.class);
-        InternalRuntimeManager runtimeManager = mock(InternalRuntimeManager.class);
-        when(deployedUnit.getRuntimeManager()).thenReturn(runtimeManager);
-        RuntimeEnvironment runtimeEngine = mock(RuntimeEnvironment.class);
-        when(runtimeManager.getEnvironment()).thenReturn(runtimeEngine);
-        when(runtimeEngine.getRegisterableItemsFactory()).thenReturn(itemsFactory);
-        processDefinition = mock(ProcessDefinition.class);
-        when(deployedUnit.getDeployedAssets()).thenReturn(Collections.singletonList(processDefinition));
         extension.init(server, registry);
         extension.serverStarted();
         pInstance = mock(ProcessInstance.class);
@@ -122,11 +106,6 @@ public class KafkaServerExtensionProducerTest {
         node = mock(Node.class);
         when(nInstance.getNode()).thenReturn(node);
         when(node.getMetaData()).thenReturn(Collections.emptyMap());
-        KModuleDeploymentUnit deploymentUnit = mock(KModuleDeploymentUnit.class);
-        when(deployedUnit.getDeploymentUnit()).thenReturn(deploymentUnit);
-        KieContainer kieContainer = mock(KieContainer.class);
-        when(deploymentUnit.getKieContainer()).thenReturn(kieContainer);
-        when(kieContainer.getClassLoader()).thenReturn(Thread.currentThread().getContextClassLoader());
     }
 
     @After
@@ -140,7 +119,6 @@ public class KafkaServerExtensionProducerTest {
 
     @Test 
     public void testMessageSent() throws IOException, ClassNotFoundException {
-        extension.onDeploy(new DeploymentEvent("MyDeploy1", deployedUnit));
         itemsFactory.getProcessEventListeners(runtimeEngine).forEach(l -> l.onMessage(new MessageEventImpl(
                 pInstance, runtime, nInstance,
                 "MyMessage", "Javierito")));
@@ -153,7 +131,6 @@ public class KafkaServerExtensionProducerTest {
 
     @Test
     public void testSignalSent() throws IOException, ParseException, ClassNotFoundException {
-        extension.onDeploy(new DeploymentEvent("MyDeploy1", deployedUnit));
         itemsFactory.getProcessEventListeners(runtimeEngine).forEach(l -> l.onSignal(new SignalEventImpl(
                 pInstance, runtime, nInstance, "MySignal", "Javierito")));
         List<ProducerRecord<String, byte[]>> events = mockProducer.history();
@@ -167,7 +144,6 @@ public class KafkaServerExtensionProducerTest {
     public void testSignalSentImplementation() throws IOException, ClassNotFoundException {
         when(node.getMetaData()).thenReturn(Collections.singletonMap("implementation", "##kafka"));
         System.clearProperty(SIGNAL_MAPPING_PROPERTY);
-        extension.onDeploy(new DeploymentEvent("MyDeploy1", deployedUnit));
         itemsFactory.getProcessEventListeners(runtimeEngine).forEach(l -> l.onSignal(new SignalEventImpl(
                 pInstance, runtime, nInstance, "MySignal", "Javierito")));
         List<ProducerRecord<String, byte[]>> events = mockProducer.history();
@@ -180,7 +156,6 @@ public class KafkaServerExtensionProducerTest {
     @Test
     public void testSignalDisable() throws IOException {
         System.clearProperty(SIGNAL_MAPPING_PROPERTY);
-        extension.onDeploy(new DeploymentEvent("MyDeploy1", deployedUnit));
         itemsFactory.getProcessEventListeners(runtimeEngine).forEach(l -> l.onSignal(new SignalEventImpl(
                 pInstance, runtime, nInstance, "MySignal", "Javierito")));
         assertTrue(mockProducer.history().isEmpty());
@@ -189,18 +164,8 @@ public class KafkaServerExtensionProducerTest {
     @Test
     public void testMessageDisable() throws IOException, ParseException {
         System.setProperty(MESSAGE_MAPPING_PROPERTY, Mapping.NONE.toString());
-        extension.onDeploy(new DeploymentEvent("MyDeploy1", deployedUnit));
         itemsFactory.getProcessEventListeners(runtimeEngine).forEach(l -> l.onMessage(new MessageEventImpl(
                 pInstance, runtime, nInstance, "MyMessage", "Javierito")));
         assertTrue(mockProducer.history().isEmpty());
     }
-
-    @Test
-    public void testUndeploy() {
-        DeploymentEvent event = new DeploymentEvent("MyDeploy1", deployedUnit);
-        extension.onDeploy(event);
-        extension.onUnDeploy(event);
-        assertTrue(mockProducer.history().isEmpty());
-    }
-
 }

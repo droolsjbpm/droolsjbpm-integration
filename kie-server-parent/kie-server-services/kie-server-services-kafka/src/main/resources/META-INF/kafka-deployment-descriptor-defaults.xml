@@ -4,7 +4,13 @@
     xsi:schemaLocation="">
     <persistence-unit>org.jbpm.domain</persistence-unit>
     <audit-persistence-unit>org.jbpm.domain</audit-persistence-unit>
-    <event-listeners />
+    <event-listeners>
+        <event-listener>
+            <resolver>mvel</resolver>
+            <identifier>new org.kie.server.services.jbpm.kafka.KafkaServerProcessListener()</identifier>
+            <parameters/>
+        </event-listener>
+    </event-listeners>
     <task-event-listeners />
     <work-item-handlers>
         <work-item-handler>
