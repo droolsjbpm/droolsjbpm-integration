@@ -253,7 +253,7 @@
         </plugin>
         <plugin>
           <groupId>org.codehaus.cargo</groupId>
-          <artifactId>cargo-maven2-plugin</artifactId>
+          <artifactId>cargo-maven3-plugin</artifactId>
           <configuration>
             <container>
               <containerId>${cargo.container.id}</containerId>
@@ -474,7 +474,7 @@
           <plugins>
             <plugin>
               <groupId>org.codehaus.cargo</groupId>
-              <artifactId>cargo-maven2-plugin</artifactId>
+              <artifactId>cargo-maven3-plugin</artifactId>
               <configuration>
                 <container>
                   <dependencies combine.children="append">
@@ -510,7 +510,7 @@
           <plugins>
             <plugin>
               <groupId>org.codehaus.cargo</groupId>
-              <artifactId>cargo-maven2-plugin</artifactId>
+              <artifactId>cargo-maven3-plugin</artifactId>
               <configuration>
                 <container>
                   <dependencies combine.children="append">
@@ -546,7 +546,7 @@
           <plugins>
             <plugin>
               <groupId>org.codehaus.cargo</groupId>
-              <artifactId>cargo-maven2-plugin</artifactId>
+              <artifactId>cargo-maven3-plugin</artifactId>
               <configuration>
                 <container>
                   <dependencies combine.children="append">
@@ -578,7 +578,7 @@
           <plugins>
             <plugin>
               <groupId>org.codehaus.cargo</groupId>
-              <artifactId>cargo-maven2-plugin</artifactId>
+              <artifactId>cargo-maven3-plugin</artifactId>
               <configuration>
                 <configuration>
                   <properties>
@@ -618,7 +618,7 @@
           <plugins>
             <plugin>
               <groupId>org.codehaus.cargo</groupId>
-              <artifactId>cargo-maven2-plugin</artifactId>
+              <artifactId>cargo-maven3-plugin</artifactId>
               <configuration>
                 <container>
                   <type>installed</type>
@@ -784,7 +784,7 @@
         <kie.server.remoting.url>http-remoting://${container.hostname}:${container.port}</kie.server.remoting.url>
         <kie.server.context.factory>org.wildfly.naming.client.WildFlyInitialContextFactory</kie.server.context.factory>
         <org.kie.server.persistence.ds>java:/jdbc/jbpm</org.kie.server.persistence.ds>
-        <cargo.container.id>wildfly19x</cargo.container.id>
+        <cargo.container.id>wildfly23x</cargo.container.id>
         <!-- Enable integration tests and Cargo when running with application server. -->
         <skipITs>false</skipITs>
         <cargo.maven.skip>false</cargo.maven.skip>
@@ -794,7 +794,7 @@
           <plugins>
             <plugin>
               <groupId>org.codehaus.cargo</groupId>
-              <artifactId>cargo-maven2-plugin</artifactId>
+              <artifactId>cargo-maven3-plugin</artifactId>
               <configuration>
                 <container>
                   <type>installed</type>
@@ -957,8 +957,8 @@
       <properties>
         <kie.server.remoting.url>http-remoting://${container.hostname}:${container.port}</kie.server.remoting.url>
         <org.kie.server.persistence.ds>java:jboss/datasources/ExampleDS</org.kie.server.persistence.ds>
-        <!-- eap7.3 is basically wildfly19; until there is a EAP 7 specific containerId, 'wildfly19x' should work just fine -->
-        <cargo.container.id>wildfly19x</cargo.container.id>
+        <!-- eap7.4 is basically wildfly23; until there is a EAP 7 specific containerId, 'wildfly23x' should work just fine -->
+        <cargo.container.id>wildfly23x</cargo.container.id>
         <!-- Enable integration tests and Cargo when running with application server. -->
         <skipITs>false</skipITs>
         <cargo.maven.skip>false</cargo.maven.skip>
@@ -968,7 +968,7 @@
           <plugins>
             <plugin>
               <groupId>org.codehaus.cargo</groupId>
-              <artifactId>cargo-maven2-plugin</artifactId>
+              <artifactId>cargo-maven3-plugin</artifactId>
               <configuration>
                 <container>
                   <type>installed</type>
@@ -1125,7 +1125,7 @@
           <plugins>
             <plugin>
               <groupId>org.codehaus.cargo</groupId>
-              <artifactId>cargo-maven2-plugin</artifactId>
+              <artifactId>cargo-maven3-plugin</artifactId>
               <configuration>
                 <container>
                   <type>installed</type>
@@ -1254,7 +1254,7 @@
           <plugins>
             <plugin>
               <groupId>org.codehaus.cargo</groupId>
-              <artifactId>cargo-maven2-plugin</artifactId>
+              <artifactId>cargo-maven3-plugin</artifactId>
               <configuration>
                 <container>
                   <type>installed</type>
