@@ -75,12 +75,41 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.kie.api.runtime.process.ProcessInstance.STATE_ACTIVE;
+import static org.kie.internal.runtime.conf.RuntimeStrategy.SINGLETON;
+import static org.kie.server.springboot.samples.KafkaFixture.ALT_PROJECT;
+import static org.kie.server.springboot.samples.KafkaFixture.BOUNDARY_MESSAGE;
+import static org.kie.server.springboot.samples.KafkaFixture.BOUNDARY_MESSAGE_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.BOUNDARY_SIGNAL;
+import static org.kie.server.springboot.samples.KafkaFixture.BOUNDARY_SIGNAL_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.INTERMEDIATE_CATCH_EVENT_MESSAGE_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.INTERMEDIATE_CATCH_EVENT_SIGNAL_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.INTERMEDIATE_MESSAGE;
+import static org.kie.server.springboot.samples.KafkaFixture.INTERMEDIATE_SIGNAL;
+import static org.kie.server.springboot.samples.KafkaFixture.JOHN;
+import static org.kie.server.springboot.samples.KafkaFixture.KAFKA_EXTENSION_PREFIX;
+import static org.kie.server.springboot.samples.KafkaFixture.SIGNALLING_PROJECT;
+import static org.kie.server.springboot.samples.KafkaFixture.START_MESSAGE;
+import static org.kie.server.springboot.samples.KafkaFixture.START_MESSAGE_COMPLEX_POJO;
+import static org.kie.server.springboot.samples.KafkaFixture.START_MESSAGE_COMPLEX_POJO_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.START_MESSAGE_POJO;
+import static org.kie.server.springboot.samples.KafkaFixture.START_MESSAGE_POJO_CLASS_NOT_FOUND;
+import static org.kie.server.springboot.samples.KafkaFixture.START_MESSAGE_POJO_CLASS_NOT_FOUND_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.START_MESSAGE_POJO_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.START_MESSAGE_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.START_SIGNAL;
+import static org.kie.server.springboot.samples.KafkaFixture.START_SIGNAL_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.SUBPROCESS_MESSAGE;
+import static org.kie.server.springboot.samples.KafkaFixture.SUBPROCESS_MESSAGE_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.SUBPROCESS_SCRIPT_NODE;
+import static org.kie.server.springboot.samples.KafkaFixture.SUBPROCESS_SIGNAL;
+import static org.kie.server.springboot.samples.KafkaFixture.SUBPROCESS_SIGNAL_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.generalSetup;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(classes = {KieServerApplication.class, TestAutoConfiguration.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations="classpath:application-kafka.properties")
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
-public class KafkaConsumerHappyPathTest extends KafkaFixture {
+public class KafkaConsumerHappyPathTest {
     
     private static final String USELESS_DATA_EVENT = "useless-data-event.json";
     private static final String MALFORMED_EVENT = "malformed-event.json";
@@ -99,6 +128,8 @@ public class KafkaConsumerHappyPathTest extends KafkaFixture {
     private static final Logger logger = LoggerFactory.getLogger(KafkaConsumerHappyPathTest.class);
 
     protected static KafkaContainer kafka = new KafkaContainer();
+    
+    protected static KafkaFixture kafkaFixture = new KafkaFixture();
     
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -135,17 +166,17 @@ public class KafkaConsumerHappyPathTest extends KafkaFixture {
     
     @Before
     public void setup() {
-        unit = setup(deploymentService, SIGNALLING_PROJECT);
+        unit = kafkaFixture.setup(deploymentService, SIGNALLING_PROJECT, SINGLETON.name());
         deploymentId = unit.getIdentifier();
-        waitForConsumerGroupToBeReady();
-        listAppender = addLogAppender();
+        kafkaFixture.waitForConsumerGroupToBeReady();
+        listAppender = kafkaFixture.addLogAppender();
     }
 
     @After
     public void cleanup() {
         NotificationListenerManager.get().reset();
-        abortAllProcesses(runtimeDataService, processService);
-        cleanup(deploymentService, unit);
+        kafkaFixture.abortAllProcesses(runtimeDataService, processService);
+        kafkaFixture.cleanup(deploymentService, unit);
     }
     
     @AfterClass
@@ -353,7 +384,7 @@ public class KafkaConsumerHappyPathTest extends KafkaFixture {
         Map<String, List<String>> map =createTopicEventsMap(START_SIGNAL, 
                 Arrays.asList(USELESS_DATA_EVENT, USELESS_DATA_EVENT, USELESS_DATA_EVENT, USELESS_DATA_EVENT));
         
-        sendTransactionalRecords(map);
+        kafkaFixture.sendTransactionalRecords(map);
         
         countDownListener.getCountDown().await();
         
@@ -371,7 +402,7 @@ public class KafkaConsumerHappyPathTest extends KafkaFixture {
                 Arrays.asList(MALFORMED_EVENT, USELESS_DATA_EVENT, MALFORMED_EVENT,
                 USELESS_DATA_EVENT, MALFORMED_EVENT));
         
-        sendTransactionalRecords(map);
+        kafkaFixture.sendTransactionalRecords(map);
         
         countDownListener.getCountDown().await();
         
@@ -396,7 +427,7 @@ public class KafkaConsumerHappyPathTest extends KafkaFixture {
         
         map.putAll(createTopicEventsMap(START_MESSAGE, events));
         
-        sendTransactionalRecords(map);
+        kafkaFixture.sendTransactionalRecords(map);
         
         countDownListener.getCountDown().await();
         
@@ -465,7 +496,7 @@ public class KafkaConsumerHappyPathTest extends KafkaFixture {
     protected void startInDifferentContainers(String processId, String eventName) throws InterruptedException {
         countDownListener.configure(processId, 2);
         
-        KModuleDeploymentUnit altDeploymentUnit = setup(deploymentService, ALT_PROJECT);
+        KModuleDeploymentUnit altDeploymentUnit = kafkaFixture.setup(deploymentService, ALT_PROJECT, SINGLETON.name());
         
         try {
             sendEvent(eventName, USELESS_DATA_EVENT);
@@ -505,7 +536,7 @@ public class KafkaConsumerHappyPathTest extends KafkaFixture {
     protected void assertExceptionInLogs(ListAppender<ILoggingEvent> listAppender, Class<?> clazz) throws InterruptedException {
         countDownListener.getCountDown().await(2, TimeUnit.SECONDS);
         
-        Optional<ILoggingEvent> logEvent = getErrorLog(listAppender);
+        Optional<ILoggingEvent> logEvent = kafkaFixture.getErrorLog(listAppender);
         assertEquals(clazz.getCanonicalName(), logEvent.get().getThrowableProxy().getClassName());
         
         assertEquals(0, countDownListener.getIds().size());
@@ -532,7 +563,7 @@ public class KafkaConsumerHappyPathTest extends KafkaFixture {
     }
     
     protected void sendEvent(String topic, String filename) {
-        sendRecord(topic, readData(filename));
+        kafkaFixture.sendRecord(topic, readData(filename));
     }
     
     protected Map<String, List<String>> createTopicEventsMap(String topic, List<String> filenames) {

@@ -19,7 +19,29 @@ package org.kie.server.springboot.samples;
 import static java.util.Collections.emptyMap;
 import static org.apache.kafka.clients.CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.kie.server.springboot.samples.KafkaFixture.END_MESSAGE;
+import static org.kie.server.springboot.samples.KafkaFixture.END_MESSAGE_OUTPUT_POJO;
+import static org.kie.server.springboot.samples.KafkaFixture.END_MESSAGE_OUTPUT_POJO_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.END_MESSAGE_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.END_SIGNAL;
+import static org.kie.server.springboot.samples.KafkaFixture.END_SIGNAL_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.GROUP_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.INTERMEDIATE_MESSAGE;
+import static org.kie.server.springboot.samples.KafkaFixture.INTERMEDIATE_SIGNAL;
+import static org.kie.server.springboot.samples.KafkaFixture.INTERMEDIATE_THROW_EVENT_MESSAGE_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.INTERMEDIATE_THROW_EVENT_SIGNAL_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.KAFKA_EXTENSION_PREFIX;
+import static org.kie.server.springboot.samples.KafkaFixture.MESSAGE_MAPPING_PROPERTY;
+import static org.kie.server.springboot.samples.KafkaFixture.NONE;
+import static org.kie.server.springboot.samples.KafkaFixture.PARALLEL_INTERMEDIATE_THROW_EVENT_MESSAGE_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.PARALLEL_INTERMEDIATE_THROW_EVENT_SIGNAL_PROCESS_ID;
+import static org.kie.server.springboot.samples.KafkaFixture.SEND_PROJECT;
+import static org.kie.server.springboot.samples.KafkaFixture.SIGNAL_MAPPING_PROPERTY;
+import static org.kie.server.springboot.samples.KafkaFixture.VERSION;
+import static org.kie.server.springboot.samples.KafkaFixture.kafka;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,12 +61,14 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 import org.kie.api.task.model.TaskSummary;
 import org.kie.internal.query.QueryFilter;
 import org.kie.server.api.marshalling.MarshallingFormat;
@@ -61,16 +85,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.junit4.rules.SpringClassRule;
+import org.springframework.test.context.junit4.rules.SpringMethodRule;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(Parameterized.class)
 @SpringBootTest(classes = {KieServerApplication.class, TestAutoConfiguration.class}, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @TestPropertySource(locations="classpath:application-kafka.properties")
 @DirtiesContext(classMode= DirtiesContext.ClassMode.AFTER_CLASS)
-public class KafkaProducerHappyPathTest extends KafkaFixture {
+public class KafkaProducerHappyPathTest extends KafkaBaseTest {
     
     private static final String MY_VALUE2 = "my-value2";
 
@@ -90,6 +115,12 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
           logger.info(">>> Starting test: " + description.getMethodName());
        }
     };
+    
+    @ClassRule
+    public static final SpringClassRule scr = new SpringClassRule();
+ 
+    @Rule
+    public final SpringMethodRule smr = new SpringMethodRule();
     
     @Autowired
     protected DeploymentService deploymentService;
@@ -113,20 +144,22 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
     
     private KieServicesClient kieServicesClient;
     
+    protected static KafkaFixture kafkaFixture = new KafkaFixture();
+    
     @BeforeClass
     public static void beforeClass() {
         System.setProperty(KAFKA_EXTENSION_PREFIX+"topics._2_Message", INTERMEDIATE_MESSAGE);
         System.setProperty(KAFKA_EXTENSION_PREFIX+"topics._2_Signal", INTERMEDIATE_SIGNAL);
         
-        generalSetup();
+        KafkaFixture.generalSetup();
     }
     
     
     @Before
     public void setup() throws Exception {
-        unit = setup(deploymentService, SEND_PROJECT);
+        unit = kafkaFixture.setup(deploymentService, SEND_PROJECT, strategy);
         deploymentId = unit.getIdentifier();
-        listAppender = addLogAppender();
+        listAppender = kafkaFixture.addLogAppender();
     }
     
     public void setupRestClient() {
@@ -145,8 +178,8 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
     @After
     public void cleanup() {
         NotificationListenerManager.get().reset();
-        abortAllProcesses(runtimeDataService, processService);
-        cleanup(deploymentService, unit);
+        kafkaFixture.abortAllProcesses(runtimeDataService, processService);
+        kafkaFixture.cleanup(deploymentService, unit);
         if (kieServicesClient != null) {
             kieServicesClient.disposeContainer(SEND_PROJECT);
         }
@@ -169,7 +202,7 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
         
         countDownListener.getCountDown().await();
         
-        consumeAndAssertRecords(END_SIGNAL, 1);
+        kafkaFixture.consumeAndAssertRecords(END_SIGNAL, 1);
     }
     
     @Test(timeout = 60000)
@@ -181,7 +214,7 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
         
         countDownListener.getCountDown().await();
         
-        consumeAndAssertRecords(END_MESSAGE, 1);
+        kafkaFixture.consumeAndAssertRecords(END_MESSAGE, 1);
     }
     
     @Test(timeout = 60000)
@@ -197,10 +230,10 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
         
         countDownListener.getCountDown().await();
         
-        ConsumerRecords<String, byte[]>  records = consumeMessages(END_MESSAGE_OUTPUT_POJO);
+        ConsumerRecords<String, byte[]>  records = kafkaFixture.consumeMessages(END_MESSAGE_OUTPUT_POJO);
         assertEquals(1, records.count());
         
-        Map<String, Object> event = getJsonObject(records.iterator().next());
+        Map<String, Object> event = kafkaFixture.getJsonObject(records.iterator().next());
         assertEquals("org.jbpm.data.Dog", event.get("type"));
     }
 
@@ -218,8 +251,21 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
         
         countDownListener.getCountDown().await(1, TimeUnit.SECONDS);
         
-        Optional<ILoggingEvent> logEvent = getErrorLog(listAppender);
+        Optional<ILoggingEvent> logEvent = kafkaFixture.getErrorLog(listAppender);
         assertEquals(RecordTooLargeException.class.getCanonicalName(), logEvent.get().getThrowableProxy().getClassName());
+    }
+    
+    @Test(timeout = 60000)
+    public void testCustomEventListenerMerged() throws Exception {
+        Long pid1 = processService.startProcess(deploymentId, INTERMEDIATE_THROW_EVENT_MESSAGE_PROCESS_ID,
+                Collections.singletonMap("x", MY_VALUE1));
+        
+        kafkaFixture.consumeAndAssertRecords(INTERMEDIATE_MESSAGE, 1);
+
+        Boolean listenerVar = (Boolean) processService.getProcessInstanceVariable(deploymentId, pid1, "testListenerStarted");
+        assertNotNull(listenerVar);
+        assertTrue(listenerVar);
+        autocompleteSingleTask(1);
     }
     
     @Test(timeout = 60000)
@@ -230,7 +276,7 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
         processService.startProcess(deploymentId, INTERMEDIATE_THROW_EVENT_MESSAGE_PROCESS_ID,
                 Collections.singletonMap("x", MY_VALUE2));
         
-        consumeAndAssertRecords(INTERMEDIATE_MESSAGE, 2);
+        kafkaFixture.consumeAndAssertRecords(INTERMEDIATE_MESSAGE, 2);
 
         autocompleteSingleTask(2);
     }
@@ -243,7 +289,7 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
         processService.startProcess(deploymentId, INTERMEDIATE_THROW_EVENT_SIGNAL_PROCESS_ID,
                 Collections.singletonMap("x", MY_VALUE2));
         
-        consumeAndAssertRecords(INTERMEDIATE_SIGNAL, 2);
+        kafkaFixture.consumeAndAssertRecords(INTERMEDIATE_SIGNAL, 2);
 
         autocompleteSingleTask(2);
     }
@@ -255,7 +301,7 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
         processService.startProcess(deploymentId, INTERMEDIATE_THROW_EVENT_MESSAGE_PROCESS_ID,
                 Collections.singletonMap("x", MY_VALUE1));
         
-        consumeAndAssertRecords(INTERMEDIATE_MESSAGE, 0);
+        kafkaFixture.consumeAndAssertRecords(INTERMEDIATE_MESSAGE, 0);
 
         autocompleteSingleTask(1);
     }
@@ -267,7 +313,7 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
         processService.startProcess(deploymentId, INTERMEDIATE_THROW_EVENT_SIGNAL_PROCESS_ID,
                 Collections.singletonMap("x", MY_VALUE2));
         
-        consumeAndAssertRecords(INTERMEDIATE_SIGNAL, 0);
+        kafkaFixture.consumeAndAssertRecords(INTERMEDIATE_SIGNAL, 0);
 
         autocompleteSingleTask(1);
     }
@@ -279,7 +325,7 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
         
         processService.startProcess(deploymentId, PARALLEL_INTERMEDIATE_THROW_EVENT_MESSAGE_PROCESS_ID, params);
         
-        consumeAndAssertRecords(INTERMEDIATE_MESSAGE, 2);
+        kafkaFixture.consumeAndAssertRecords(INTERMEDIATE_MESSAGE, 2);
 
         autocompleteSingleTask(1);
     }
@@ -293,7 +339,7 @@ public class KafkaProducerHappyPathTest extends KafkaFixture {
         
         processService.startProcess(deploymentId, PARALLEL_INTERMEDIATE_THROW_EVENT_SIGNAL_PROCESS_ID, params);
         
-        consumeAndAssertRecords(INTERMEDIATE_SIGNAL, 1);
+        kafkaFixture.consumeAndAssertRecords(INTERMEDIATE_SIGNAL, 1);
 
         autocompleteSingleTask(1);
     }
