@@ -74,11 +74,9 @@
     <feature version="${project.version}">drools-jpa</feature>
     <feature version="${project.version}">jbpm-commons</feature>
     <feature version="${project.version}">kie-dmn</feature>
+    <feature version="${project.version}">jackson</feature>
     <bundle>mvn:com.google.guava/guava/${version.com.google.guava}</bundle>
     <bundle>mvn:com.google.guava/failureaccess/${version.com.google.guava.failureaccess}</bundle>
-    <bundle>mvn:com.fasterxml.jackson.core/jackson-annotations/${version.com.fasterxml.jackson}</bundle>
-    <bundle>mvn:com.fasterxml.jackson.core/jackson-core/${version.com.fasterxml.jackson}</bundle>
-    <bundle>mvn:com.fasterxml.jackson.core/jackson-databind/${version.com.fasterxml.jackson.databind}</bundle>
     <bundle>mvn:javax.mail/mail/${version.javax.mail}</bundle>
     <bundle>mvn:org.jbpm/jbpm-flow/${version.org.jbpm}</bundle>
     <bundle>mvn:org.jbpm/jbpm-query-jpa/${version.org.jbpm}</bundle>
