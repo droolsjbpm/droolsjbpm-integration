@@ -8,6 +8,7 @@ public interface SVGProcessor {
     String COMPLETED_COLOR = "#C0C0C0";
     String COMPLETED_BORDER_COLOR = "#030303";
     String ACTIVE_BORDER_COLOR = "#FF0000";
+    String SHOW_INSTANCE_BADGES_DEFAULT = "false";
 
     void transform(Transformation t);
 
