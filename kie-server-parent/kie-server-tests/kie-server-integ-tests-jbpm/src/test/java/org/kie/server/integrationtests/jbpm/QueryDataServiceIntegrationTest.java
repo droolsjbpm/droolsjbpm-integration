@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -416,7 +415,7 @@ public class QueryDataServiceIntegrationTest extends JbpmKieServerBaseIntegratio
             assertEquals(query.getExpression(), replaced.getExpression());
             assertEquals(query.getTarget(), replaced.getTarget());
             assertNotNull(replaced.getColumns());
-            assertEquals(replaced.getColumns().size(), 18);
+            assertEquals(replaced.getColumns().size(), 19);
 
             tasks = queryClient.query(query.getName(), QueryServicesClient.QUERY_MAP_TASK, 0, 10, TaskInstance.class);
             assertNotNull(tasks);
