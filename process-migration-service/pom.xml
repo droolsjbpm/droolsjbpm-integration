@@ -120,6 +120,10 @@
           <artifactId>narayana-jts-idlj</artifactId>
           <groupId>org.jboss.narayana.jts</groupId>
         </exclusion>
+        <exclusion>
+          <groupId>io.smallrye.config</groupId>
+          <artifactId>smallrye-config</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
