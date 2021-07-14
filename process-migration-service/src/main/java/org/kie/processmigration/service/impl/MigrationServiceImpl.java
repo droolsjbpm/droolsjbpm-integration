@@ -19,6 +19,7 @@ package org.kie.processmigration.service.impl;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -28,7 +29,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 import javax.ws.rs.client.ClientBuilder;
@@ -67,10 +67,10 @@ public class MigrationServiceImpl implements MigrationService {
 
     private static final Logger logger = LoggerFactory.getLogger(MigrationServiceImpl.class);
 
-    private static final List<Integer> QUERY_PROCESS_INSTANCE_STATUSES = Arrays.asList(org.kie.api.runtime.process.ProcessInstance.STATE_ACTIVE);
+    private static final List<Integer> QUERY_PROCESS_INSTANCE_STATUSES = Collections.singletonList(org.kie.api.runtime.process.ProcessInstance.STATE_ACTIVE);
     public static final Integer QUERY_PAGE_SIZE = 100;
 
-    @PersistenceContext
+    @Inject
     private EntityManager em;
 
     @Inject

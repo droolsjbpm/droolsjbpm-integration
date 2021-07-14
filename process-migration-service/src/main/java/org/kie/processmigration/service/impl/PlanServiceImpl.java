@@ -19,9 +19,9 @@ package org.kie.processmigration.service.impl;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
-import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.transaction.Transactional;
 
@@ -32,7 +32,7 @@ import org.kie.processmigration.service.PlanService;
 @ApplicationScoped
 public class PlanServiceImpl implements PlanService {
 
-    @PersistenceContext
+    @Inject
     private EntityManager em;
 
     @Override

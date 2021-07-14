@@ -25,9 +25,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
 
 import org.jboss.weld.junit4.WeldInitiator;
 import org.junit.Before;
@@ -52,7 +52,6 @@ import org.kie.server.api.model.admin.MigrationReportInstance;
 import org.kie.server.api.model.instance.ProcessInstance;
 import org.kie.server.client.QueryServicesClient;
 import org.kie.server.client.admin.ProcessAdminServicesClient;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import static org.junit.Assert.assertEquals;
@@ -60,12 +59,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyMapOf;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -75,11 +74,13 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
 
     @Rule
     public WeldInitiator weld = WeldInitiator
-        .from(PlanServiceImpl.class, MigrationServiceImpl.class, TransactionHelper.class)
+        .from(EntityManagerProducer.class, PlanServiceImpl.class, MigrationServiceImpl.class, TransactionHelper.class)
         .addBeans(createMockBean(KieService.class), createMockBean(SchedulerService.class))
-        .setPersistenceContextFactory(getPCFactory())
         .inject(this)
         .build();
+
+    @Inject
+    private EntityManager entityManager;
     @Inject
     private MigrationService migrationService;
     @Inject
@@ -115,7 +116,7 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
                                                                                eq(i),
                                                                                anyString(),
                                                                                anyString(),
-                                                                               anyMapOf(String.class, String.class)))
+                                                                               anyMap()))
                 .thenReturn(createReport(i));
         }
 
@@ -124,9 +125,9 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         addMockConfigs(kieServiceMock);
 
         // When
-        getEntityManager().getTransaction().begin();
+        entityManager.getTransaction().begin();
         migrationService.submit(def);
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().commit();
 
         // Then
         for (long i = 1; i <= 3; i++) {
@@ -147,7 +148,7 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         assertNotNull(m.getFinishedAt());
         List<MigrationReport> results = migrationService.getResults(m.getId());
         assertEquals(3, results.size());
-        results.stream().forEach(r -> assertTrue(r.getSuccessful()));
+        results.forEach(r -> assertTrue(r.getSuccessful()));
     }
 
     @Test
@@ -167,9 +168,9 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         addMockConfigs(kieServiceMock);
 
         // When
-        getEntityManager().getTransaction().begin();
+        entityManager.getTransaction().begin();
         migrationService.submit(def);
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().commit();
 
         // Then
         List<Migration> migrations = migrationService.findAll();
@@ -202,23 +203,23 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
                                                                                eq(i),
                                                                                anyString(),
                                                                                anyString(),
-                                                                               anyMapOf(String.class, String.class)))
+                                                                               anyMap()))
                 .thenReturn(createReport(i));
         }
         Mockito.when(kieServiceMock.getProcessAdminServicesClient(anyString()))
             .thenReturn(mockProcessAdminServicesClient);
-        Mockito.when(mockQueryServicesClient.findProcessInstancesByContainerId(anyString(), anyListOf(Integer.class), eq(0), anyInt()))
+        Mockito.when(mockQueryServicesClient.findProcessInstancesByContainerId(anyString(), anyList(), eq(0), anyInt()))
             .thenReturn(buildProcessInstances(1, 100));
-        Mockito.when(mockQueryServicesClient.findProcessInstancesByContainerId(anyString(), anyListOf(Integer.class), eq(1), anyInt()))
+        Mockito.when(mockQueryServicesClient.findProcessInstancesByContainerId(anyString(), anyList(), eq(1), anyInt()))
             .thenReturn(buildProcessInstances(101, 110));
         Mockito.when(kieServiceMock.getQueryServicesClient(anyString()))
             .thenReturn(mockQueryServicesClient);
         addMockConfigs(kieServiceMock);
 
         // When
-        getEntityManager().getTransaction().begin();
+        entityManager.getTransaction().begin();
         migrationService.submit(def);
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().commit();
 
         // Then
         for (long i = 1; i <= 110; i++) {
@@ -239,7 +240,7 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         assertNotNull(m.getFinishedAt());
         List<MigrationReport> results = migrationService.getResults(m.getId());
         assertEquals(110, results.size());
-        results.stream().forEach(r -> assertTrue(r.getSuccessful()));
+        results.forEach(r -> assertTrue(r.getSuccessful()));
     }
 
     @Test
@@ -248,7 +249,7 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         Plan plan = createPlan();
         MigrationDefinition def = createMigrationDefinition(plan, SYNC);
         Migration m = new Migration(def);
-        getEntityManager().persist(m);
+        entityManager.persist(m);
         m.getReports().add(new MigrationReport(m.getId(), createReport(1L)));
 
         // Setup mock
@@ -260,7 +261,7 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
                                                                                eq(i),
                                                                                anyString(),
                                                                                anyString(),
-                                                                               anyMapOf(String.class, String.class)))
+                                                                               anyMap()))
                 .thenReturn(createReport(i));
         }
         Mockito.when(kieServiceMock.existsProcessDefinition(anyString(), any(ProcessRef.class))).thenReturn(Boolean.TRUE);
@@ -269,9 +270,9 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         addMockConfigs(kieServiceMock);
 
         // When
-        getEntityManager().getTransaction().begin();
+        entityManager.getTransaction().begin();
         migrationService.migrate(m);
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().commit();
 
         // Then
         for (long i = 2; i <= 3; i++) {
@@ -292,7 +293,7 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         assertNotNull(m.getFinishedAt());
         List<MigrationReport> results = migrationService.getResults(m.getId());
         assertEquals(3, results.size());
-        results.stream().forEach(r -> assertTrue(r.getSuccessful()));
+        results.forEach(r -> assertTrue(r.getSuccessful()));
     }
 
     @Test
@@ -310,7 +311,7 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
                                                                                eq(i),
                                                                                anyString(),
                                                                                anyString(),
-                                                                               anyMapOf(String.class, String.class)))
+                                                                               anyMap()))
                 .thenReturn(createReport(i));
         }
         Mockito.when(mockQueryServicesClient.findProcessInstanceById(eq(3L))).thenReturn(null);
@@ -320,9 +321,9 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         addMockConfigs(kieServiceMock);
 
         // When
-        getEntityManager().getTransaction().begin();
+        entityManager.getTransaction().begin();
         migrationService.submit(def);
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().commit();
 
         // Then
         for (long i = 1; i <= 2; i++) {
@@ -362,16 +363,16 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
                                                                                eq(i),
                                                                                anyString(),
                                                                                anyString(),
-                                                                               anyMapOf(String.class, String.class)))
+                                                                               anyMap()))
                 .thenReturn(createReport(i));
         }
         Mockito.when(kieServiceMock.getProcessAdminServicesClient(anyString())).thenReturn(mockProcessAdminServicesClient);
         addMockConfigs(kieServiceMock);
 
         // When
-        getEntityManager().getTransaction().begin();
+        entityManager.getTransaction().begin();
         Migration m = migrationService.submit(def);
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().commit();
 
         verify(schedulerServiceMock, times(1)).scheduleMigration(m);
     }
@@ -394,15 +395,15 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
                                                                                eq(i),
                                                                                anyString(),
                                                                                anyString(),
-                                                                               anyMapOf(String.class, String.class)))
+                                                                               anyMap()))
                 .thenReturn(createReport(i));
         }
         Mockito.when(kieServiceMock.getProcessAdminServicesClient(anyString())).thenReturn(mockProcessAdminServicesClient);
         addMockConfigs(kieServiceMock);
 
-        getEntityManager().getTransaction().begin();
+        entityManager.getTransaction().begin();
         Migration m = migrationService.submit(def);
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().commit();
 
         // When
         MigrationDefinition updatedMigrationDef = createMigrationDefinition(plan, execution);
@@ -434,13 +435,13 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
 
         // When
         try {
-            getEntityManager().getTransaction().begin();
+            entityManager.getTransaction().begin();
             migrationService.submit(def);
             fail("Expected validation exception");
         } catch (ProcessNotFoundException e) {
             assertNotNull(e);
         } finally {
-            getEntityManager().getTransaction().commit();
+            entityManager.getTransaction().commit();
         }
     }
 
@@ -458,13 +459,13 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
 
         // When
         try {
-            getEntityManager().getTransaction().begin();
+            entityManager.getTransaction().begin();
             migrationService.submit(def);
             fail("Expected InvalidMigrationException due to wrong planId");
         } catch (InvalidMigrationException e) {
             assertNotNull(e);
         } finally {
-            getEntityManager().getTransaction().commit();
+            entityManager.getTransaction().commit();
         }
     }
 
@@ -492,13 +493,13 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
 
         // When
         try {
-            getEntityManager().getTransaction().begin();
+            entityManager.getTransaction().begin();
             migrationService.submit(def);
             fail("Expected InvalidKieServerException due to wrong kieserverId");
         } catch (InvalidKieServerException e) {
             assertNotNull(e);
         } finally {
-            getEntityManager().getTransaction().commit();
+            entityManager.getTransaction().commit();
         }
     }
 
@@ -507,13 +508,13 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         MigrationDefinition def = new MigrationDefinition();
         def.setPlanId(1L);
         try {
-            getEntityManager().getTransaction().begin();
+            entityManager.getTransaction().begin();
             migrationService.submit(def);
             fail("Expected InvalidKieServerException due to wrong kieserverId");
         } catch (InvalidMigrationException e) {
             assertNotNull(e);
         } finally {
-            getEntityManager().getTransaction().commit();
+            entityManager.getTransaction().commit();
         }
     }
 
@@ -531,7 +532,7 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
                                                                            eq(1L),
                                                                            anyString(),
                                                                            anyString(),
-                                                                           anyMapOf(String.class, String.class)))
+                                                                           anyMap()))
             .thenThrow(new RuntimeException("Foo"));
         Mockito.when(mockQueryServicesClient.findProcessInstanceById(eq(1L))).thenReturn(buildProcessInstance(1L, plan.getSource().getContainerId()));
         Mockito.when(kieServiceMock.existsProcessDefinition(anyString(), any(ProcessRef.class))).thenReturn(Boolean.TRUE);
@@ -541,7 +542,7 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
                                                                                eq(i),
                                                                                anyString(),
                                                                                anyString(),
-                                                                               anyMapOf(String.class, String.class)))
+                                                                               anyMap()))
                 .thenReturn(createReport(i));
         }
 
@@ -550,9 +551,9 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         addMockConfigs(kieServiceMock);
 
         // When
-        getEntityManager().getTransaction().begin();
+        entityManager.getTransaction().begin();
         migrationService.submit(def);
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().commit();
 
         // Then
         for (long i = 1; i <= 3; i++) {
@@ -590,11 +591,9 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         execution.setType(ExecutionType.ASYNC).setScheduledStartTime(LocalDateTime.now().plusDays(2).toInstant(ZoneOffset.UTC));
         MigrationDefinition def = createMigrationDefinition(plan, execution);
         Migration m = new Migration(def);
-        getEntityManager().persist(m);
+        entityManager.persist(m);
 
         // Setup mock
-        Mockito.when(getEntityManager().find(Migration.class, 99L)).thenReturn(m);
-        Mockito.doNothing().when(getEntityManager()).persist(m);
         ProcessAdminServicesClient mockProcessAdminServicesClient = Mockito.mock(ProcessAdminServicesClient.class);
         QueryServicesClient mockQueryServicesClient = Mockito.mock(QueryServicesClient.class);
         Mockito.when(kieServiceMock.existsProcessDefinition(anyString(), any(ProcessRef.class))).thenReturn(Boolean.TRUE);
@@ -604,7 +603,7 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
                                                                                eq(i),
                                                                                anyString(),
                                                                                anyString(),
-                                                                               anyMapOf(String.class, String.class)))
+                                                                               anyMap()))
                 .thenReturn(createReport(i));
         }
         Mockito.when(kieServiceMock.getProcessAdminServicesClient(anyString())).thenReturn(mockProcessAdminServicesClient);
@@ -612,26 +611,20 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         addMockConfigs(kieServiceMock);
 
         // When
-        getEntityManager().getTransaction().begin();
+        entityManager.getTransaction().begin();
         Migration result = migrationService.migrate(m);
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().commit();
 
         // Then
-        ArgumentCaptor<Object> argument = ArgumentCaptor.forClass(Object.class);
-        verify(getEntityManager(), times(5)).persist(argument.capture());
-        List<MigrationReport> reports = argument.getAllValues().stream()
-            .filter(o -> o.getClass().equals(MigrationReport.class))
-            .map(o -> (MigrationReport) o)
-            .sorted((a, b) -> a.getProcessInstanceId().compareTo(b.getProcessInstanceId()))
-            .collect(Collectors.toList());
-        for (Long i = 1L; i <= 3; i++) {
+        List<MigrationReport> reports = migrationService.getResults(result.getId());
+        for (long i = 1L; i <= 3; i++) {
             verify(mockProcessAdminServicesClient).migrateProcessInstance(plan.getSource().getContainerId(),
                                                                           i,
                                                                           plan.getTarget().getContainerId(),
                                                                           plan.getTarget().getProcessId(),
                                                                           plan.getMappings());
-            MigrationReport r = reports.get(i.intValue() - 1);
-            assertEquals(Long.valueOf(m.getId()), r.getMigrationId());
+            MigrationReport r = reports.get((int) i - 1);
+            assertEquals(m.getId(), r.getMigrationId());
             assertEquals(Long.valueOf(i), r.getProcessInstanceId());
             assertTrue(r.getSuccessful());
         }
@@ -660,9 +653,9 @@ public class MigrationServiceImplTest extends AbstractPersistenceTest {
         mappings.put("source1", "target1");
         mappings.put("source2", "target2");
         plan.setMappings(mappings);
-        getEntityManager().getTransaction().begin();
+        entityManager.getTransaction().begin();
         planService.create(plan);
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().commit();
         return plan;
     }
 

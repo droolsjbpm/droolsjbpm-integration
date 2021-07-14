@@ -17,50 +17,30 @@
 package org.kie.processmigration.service;
 
 import java.util.Properties;
-import java.util.function.Function;
-
-import javax.enterprise.inject.spi.InjectionPoint;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 
 import org.junit.After;
-import org.kie.processmigration.persistence.TestEntityManager;
+import org.junit.Before;
+import org.kie.test.util.db.DataSourceFactory;
 import org.kie.test.util.db.PersistenceUtil;
 import org.kie.test.util.db.PoolingDataSourceWrapper;
-import org.mockito.Mockito;
 
 public abstract class AbstractPersistenceTest extends AbstractBeanBasedTest {
 
     private PoolingDataSourceWrapper ds;
-    private EntityManagerFactory emf;
+    private static final String DATASOURCE = "jdbc/testDS1";
+    private static final Properties DS_PROPS = PersistenceUtil.getDatasourceProperties();
 
-    protected EntityManagerFactory entityManagerFactory = getEntityManagerFactory();
-
-    protected EntityManager entityManager = Mockito.spy(new TestEntityManager(entityManagerFactory));
-
-    protected EntityManager getEntityManager() {
-        return entityManager;
+    protected String getDatasourceName() {
+        return DATASOURCE;
     }
 
-    protected Function<InjectionPoint, Object> getPCFactory() {
-        return ip -> entityManager;
-    }
-
-    private EntityManagerFactory getEntityManagerFactory() {
-        Properties dsProps = PersistenceUtil.getDatasourceProperties();
-        ds = PersistenceUtil.setupPoolingDataSource(dsProps, "jdbc/testDS1");
-        emf = Persistence.createEntityManagerFactory("org.kie.test.persistence");
-        return emf;
+    @Before
+    public void setupPersistence() {
+        ds = DataSourceFactory.setupPoolingDataSource(getDatasourceName(), DS_PROPS);
     }
 
     @After
     public void closeResources() {
-        if(emf != null) {
-            emf.close();
-        }
         if(ds != null) {
             ds.close();
         }

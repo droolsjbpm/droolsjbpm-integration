@@ -19,4 +19,77 @@
       <property name="hibernate.show_sql" value="false"/>
     </properties>
   </persistence-unit>
+
+  <persistence-unit name="migration-unit"
+                    transaction-type="JTA">
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <jta-data-source>jdbc/testDS1</jta-data-source>
+    <class>org.kie.processmigration.model.Migration</class>
+    <class>org.kie.processmigration.model.Plan</class>
+    <class>org.kie.processmigration.model.MigrationReport</class>
+    <properties>
+      <property name="hibernate.max_fetch_depth" value="3"/>
+      <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
+      <property name="hibernate.show_sql" value="false"/>
+    </properties>
+  </persistence-unit>
+
+  <persistence-unit name="org.kie.test.persistence.generate-ddl-scripts" transaction-type="JTA">
+    <class>org.kie.processmigration.model.Plan</class>
+    <class>org.kie.processmigration.model.Migration</class>
+    <class>org.kie.processmigration.model.MigrationReport</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+  </persistence-unit>
+
+  <persistence-unit name="scriptRunner" transaction-type="JTA">
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <jta-data-source>jdbc/testDS1</jta-data-source>
+    <class>org.kie.processmigration.model.Plan</class>
+    <class>org.kie.processmigration.model.Migration</class>
+    <class>org.kie.processmigration.model.MigrationReport</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    <properties>
+      <property name="hibernate.dialect" value="${maven.hibernate.dialect}"/>
+      <property name="hibernate.default_schema" value="${maven.jdbc.schema}"/>
+
+      <property name="hibernate.max_fetch_depth" value="3"/>
+      <!-- No value for hbm2ddl.auto, because tests manage DDL themselves. -->
+      <property name="hibernate.hbm2ddl.auto" value=""/>
+      <property name="hibernate.show_sql" value="false"/>
+    </properties>
+  </persistence-unit>
+
+  <persistence-unit name="clearSchema" transaction-type="JTA">
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <jta-data-source>jdbc/testDS4</jta-data-source>
+    <class>org.kie.processmigration.model.Plan</class>
+    <class>org.kie.processmigration.model.Migration</class>
+    <class>org.kie.processmigration.model.MigrationReport</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    <properties>
+      <property name="hibernate.dialect" value="${maven.hibernate.dialect}"/>
+      <property name="hibernate.default_schema" value="${maven.jdbc.schema}"/>
+
+      <property name="hibernate.max_fetch_depth" value="3"/>
+      <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
+      <property name="hibernate.show_sql" value="false"/>
+    </properties>
+  </persistence-unit>
+
+  <persistence-unit name="dbTesting" transaction-type="JTA">
+    <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <jta-data-source>jdbc/testDS2</jta-data-source>
+    <class>org.kie.processmigration.model.Plan</class>
+    <class>org.kie.processmigration.model.Migration</class>
+    <class>org.kie.processmigration.model.MigrationReport</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    <properties>
+      <property name="hibernate.dialect" value="${maven.hibernate.dialect}"/>
+      <property name="hibernate.default_schema" value="${maven.jdbc.schema}"/>
+
+      <property name="hibernate.max_fetch_depth" value="3"/>
+      <property name="hibernate.hbm2ddl.auto" value="validate"/>
+      <property name="hibernate.show_sql" value="false"/>
+    </properties>
+  </persistence-unit>
 </persistence>

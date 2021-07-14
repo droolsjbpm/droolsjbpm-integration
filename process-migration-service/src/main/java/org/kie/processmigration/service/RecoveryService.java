@@ -24,7 +24,6 @@ import javax.ejb.Singleton;
 import javax.ejb.Startup;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
 import org.kie.processmigration.model.Execution.ExecutionStatus;
@@ -41,7 +40,7 @@ public class RecoveryService {
     private static final List<ExecutionStatus> PENDING_STATUSES = Arrays.asList(ExecutionStatus.STARTED,
                                                                                 ExecutionStatus.CREATED);
 
-    @PersistenceContext
+    @Inject
     private EntityManager em;
 
     @Inject

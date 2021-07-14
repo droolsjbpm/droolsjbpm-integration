@@ -6,6 +6,7 @@
   <persistence-unit name="migration-unit"
                     transaction-type="JTA">
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+    <jta-data-source>java:jboss/datasources/pimDS</jta-data-source>
     <class>org.kie.processmigration.model.Migration</class>
     <class>org.kie.processmigration.model.Plan</class>
     <class>org.kie.processmigration.model.MigrationReport</class>

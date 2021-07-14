@@ -19,6 +19,7 @@ package org.kie.processmigration.service;
 import java.util.List;
 
 import javax.inject.Inject;
+import javax.persistence.EntityManager;
 
 import org.jboss.weld.junit4.WeldInitiator;
 import org.junit.Rule;
@@ -34,11 +35,12 @@ public class PlanServiceImplTest extends AbstractPersistenceTest {
 
     @Rule
     public WeldInitiator weld = WeldInitiator
-        .from(PlanServiceImpl.class)
-        .setPersistenceContextFactory(getPCFactory())
+        .from(EntityManagerProducer.class, PlanServiceImpl.class)
         .inject(this)
         .build();
 
+    @Inject
+    private EntityManager entityManager;
     @Inject
     private PlanService planService;
 
@@ -54,9 +56,9 @@ public class PlanServiceImplTest extends AbstractPersistenceTest {
         plan.setDescription("description");
 
         // When
-        getEntityManager().getTransaction().begin();
+        entityManager.getTransaction().begin();
         planService.create(plan);
-        getEntityManager().getTransaction().commit();
+        entityManager.getTransaction().commit();
 
         // Then
         List<Plan> plans = planService.findAll();
